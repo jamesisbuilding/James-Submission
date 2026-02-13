@@ -6,13 +6,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_analysis_service/image_analysis_service.dart';
 import 'package:image_viewer/src/bloc/image_viewer_bloc.dart';
 import 'package:image_viewer/src/bloc/image_viewer_state.dart';
-import 'package:image_viewer/src/cubit/cubit.dart';
 import 'package:image_viewer/src/view/widgets/control_bar/control_bar_main_button.dart';
 import 'package:image_viewer/src/view/widgets/control_bar/favourite_button.dart';
 import 'package:image_viewer/src/view/widgets/helper_widgets/measure_size.dart';
 import 'package:image_viewer/src/view/widgets/notch.dart';
 
-const _collapsedVisiblePx = 50.0;
+const _collapsedVisiblePx = 62.5; // 50 * 1.25 for 25% taller collapsed sheet
 const _snapDuration = Duration(milliseconds: 250);
 
 class ControlBar extends StatefulWidget {
@@ -187,6 +186,7 @@ class _ControlBarState extends State<ControlBar>
                                 onAnotherTap: widget.onAnotherTap,
                                 onPlayTapped: widget.onPlayTapped,
                                 mode: widget.mode,
+                                isExpanded: _isExpanded,
                               ),
 
                               CustomIconButton(
@@ -220,25 +220,28 @@ class _ControlBarState extends State<ControlBar>
       bottom: 0,
       left: 0,
       right: 0,
-      child: RepaintBoundary(
-        child: MeasureSize(
-          onChange: (size) {
-            if (size != null && _contentHeight != size.height) {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (mounted) {
-                  setState(() {
-                    _contentHeight = size.height;
-                    if (!_isExpanded) {
-                      _slideOffsetPx = _collapseDistance;
-                    }
-                  });
-                }
-              });
-            }
-          },
-          child: Transform.translate(
-            offset: Offset(0, _slideOffsetPx),
-            child: _buildSheetContent(context),
+      child: Container(
+        color: Colors.transparent,
+        child: RepaintBoundary(
+          child: MeasureSize(
+            onChange: (size) {
+              if (size != null && _contentHeight != size.height) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted) {
+                    setState(() {
+                      _contentHeight = size.height;
+                      if (!_isExpanded) {
+                        _slideOffsetPx = _collapseDistance;
+                      }
+                    });
+                  }
+                });
+              }
+            },
+            child: Transform.translate(
+              offset: Offset(0, _slideOffsetPx),
+              child: _buildSheetContent(context),
+            ),
           ),
         ),
       ),

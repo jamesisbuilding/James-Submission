@@ -34,14 +34,15 @@ class ImageViewerBody extends StatelessWidget {
     );
     final spans = <InlineSpan>[];
     for (var i = 0; i < words.length; i++) {
-      final match = currentWord != null &&
+      final match =
+          currentWord != null &&
           currentWord!.isTitle == isTitle &&
           currentWord!.wordIndex == i;
-      spans.add(TextSpan(
-        text: words[i],
-        style: match ? highlightStyle : baseStyle,
-      ));
-      if (i < words.length - 1) spans.add(TextSpan(text: ' ', style: baseStyle));
+      spans.add(
+        TextSpan(text: words[i], style: match ? highlightStyle : baseStyle),
+      );
+      if (i < words.length - 1)
+        spans.add(TextSpan(text: ' ', style: baseStyle));
     }
     return RichText(
       textAlign: TextAlign.center,
@@ -90,7 +91,6 @@ class ImageViewerBody extends StatelessWidget {
             child: _buildHighlightableText(context, description, false),
           ),
         ),
-        const SizedBox(height: 100),
       ],
     );
   }

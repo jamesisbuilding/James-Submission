@@ -8,11 +8,13 @@ class ControlBarMainButton extends StatelessWidget {
   final Function onAnotherTap;
   final MainButtonMode mode;
   final Function(bool) onPlayTapped;
+  final bool isExpanded;
   const ControlBarMainButton({
     super.key,
     required this.onAnotherTap,
     required this.mode,
     required this.onPlayTapped,
+    this.isExpanded = false,
   });
 
   @override
@@ -43,19 +45,20 @@ class ControlBarMainButton extends StatelessWidget {
           final atEndOfVisible =
               state.visibleImages.isNotEmpty &&
               state.selectedImage == state.visibleImages.last;
-        
 
           final nextImageForBackground =
               atEndOfVisible && state.fetchedImages.isNotEmpty
-              ? state.fetchedImages.first
-              : state.selectedImage;
+                  ? state.fetchedImages.first
+                  : state.selectedImage;
+
+          final backgroundImage = imageProviderForImage(nextImageForBackground);
 
           return BlocBuilder<TtsCubit, TtsState>(
             builder: (context, ttsState) => MainButton(
               label: 'another',
               backgroundColor: bgColor,
               foregroundColor: fgColor,
-              backgroundImage: imageProviderForImage(nextImageForBackground),
+              backgroundImage: backgroundImage,
               onTap: () => onAnotherTap(),
               mode: state.loadingType == ViewerLoadingType.manual
                   ? MainButtonMode.audio
