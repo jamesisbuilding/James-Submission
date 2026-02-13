@@ -1,0 +1,73 @@
+name: aurora_test
+description: "A new Flutter project."
+
+publish_to: 'none' 
+
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.10.0
+
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+  envied: ^0.5.4+1
+  design_system:
+    path: ../core/design_system
+  go_router: ^17.1.0
+  get_it: ^8.0.3
+  flutter_bloc: ^9.0.0
+
+  image_viewer:
+    path: ../feature/image_viewer
+  image_analysis_service:
+    path: ../core/services/image_analysis_service
+  tts_service:
+    path: ../core/services/tts_service
+  share_service:
+    path: ../core/services/share_service
+  firebase_core: ^4.4.0
+
+
+dependency_overrides:
+  envied: ^0.5.4+1
+
+dev_dependencies:
+  flutter_launcher_icons: "^0.14.4"
+  build_runner: ^2.4.13
+  envied_generator: ^0.5.4+1
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^6.0.0
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/app_icon/app_icon.png"
+  min_sdk_android: 21 # android min sdk min:16, default 21
+  web:
+    generate: true
+    image_path: "assets/app_icon/app_icon.png"
+    background_color: "#000000"
+    theme_color: "#000000"
+  windows:
+    generate: true
+    image_path: "assets/app_icon/app_icon.png"
+    icon_size: 48 # min:48, max:256, default: 48
+  macos:
+    generate: true
+    image_path: "assets/app_icon/app_icon.png"
+
+
+flutter:
+
+  uses-material-design: true
+
+  assets:
+    - assets/app_icon/
+    - .env

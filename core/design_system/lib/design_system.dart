@@ -1,0 +1,9 @@
+library design_system;
+
+export 'gen/assets.gen.dart';
+export 'src/utils/animated_press_mixin.dart';
+export 'src/utils/design_image.dart';
+export 'src/theme/theme.dart';
+export 'src/widgets/buttons/custom_icon_button.dart';
+export 'src/widgets/buttons/main_button.dart';
+export 'src/widgets/theme_switch.dart';

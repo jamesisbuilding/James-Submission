@@ -1,0 +1,52 @@
+name: image_viewer
+description: "Package to view images"
+
+publish_to: 'none' 
+
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.10.0
+
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+  dio: ^5.7.0
+  flutter_bloc: ^9.0.0
+  design_system: 
+    path: ../../core/design_system
+  freezed_annotation: ^3.1.0
+  image_pixels: ^4.0.2
+  color_palette_generator: ^2.0.1
+  cached_network_image: ^3.4.1
+  shimmer: ^3.0.0
+  carousel_slider: ^5.1.2
+
+
+  image_analysis_service:
+    path: ../../core/services/image_analysis_service
+  tts_service:
+    path: ../../core/services/tts_service
+  delayed_display: ^2.0.0
+  equatable: ^2.0.7
+  video_player: ^2.9.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^6.0.0
+  build_runner: ^2.11.1
+  freezed: ^3.2.5
+
+
+flutter:
+
+  uses-material-design: true
+
+  shaders:
+    - shaders/gradient.frag

@@ -1,0 +1,39 @@
+name: image_analysis_service
+description: "A service to analyse images"
+
+publish_to: 'none' 
+
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.10.0
+
+
+dependencies:
+  flutter:
+    sdk: flutter
+  get_it: ^8.0.3
+  crypto: ^3.0.3
+  image: ^4.3.0
+  firebase_ai: ^3.8.0
+  mime: ^2.0.0
+  path_provider: ^2.1.5
+  freezed_annotation: ^3.1.0
+  path: ^1.9.1
+  http: ^1.6.0
+  openai_dart: ^0.6.0+1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^6.0.0
+ 
+  build_runner: ^2.11.1
+  freezed: ^3.2.5
+
+
+flutter:
+
+  uses-material-design: true
