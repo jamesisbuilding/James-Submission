@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:image_analysis_service/src/domain/models/image_model.dart';
-import 'package:image_viewer/src/view/widgets/image_square.dart';
+import 'package:image_viewer/src/view/widgets/image_square/image_viewer.dart';
 
 /// Ratio array granularity. E.g. 5 means [0,0,1,1,1] for 40% current / 60% next.
 const _defaultGranularity = 5;
@@ -14,8 +14,7 @@ class ImageCarousel extends StatefulWidget {
     required this.selectedID,
     this.granularity = _defaultGranularity,
     this.controller,
-    required this.onExpanded
-
+    required this.onExpanded,
   });
 
   final void Function(int page) onPageChange;
@@ -25,7 +24,7 @@ class ImageCarousel extends StatefulWidget {
   final List<ImageModel> images;
   final String selectedID;
   final int granularity;
-  final Function(bool) onExpanded; 
+  final Function(bool) onExpanded;
 
   /// Optional controller; when provided, this widget does not own or dispose it.
   final PageController? controller;
@@ -70,7 +69,6 @@ class _ImageCarouselState extends State<ImageCarousel> {
   void _onPageChange(int page) {
     _seenIndices.add(page);
     widget.onPageChange(page);
-    // Only clear expanded state when user actually scrolls to a different page
     if (_lastPageIndex != null && page != _lastPageIndex) {
       _expandedID = '';
     }
@@ -120,13 +118,28 @@ class _ImageCarouselState extends State<ImageCarousel> {
     ];
   }
 
+  _toggleExpanded({required bool selected, required String imageUID}) {
+    if (selected) {
+      setState(() {
+        _expandedID = imageUID;
+      });
+    } else {
+      setState(() {
+        _expandedID = '';
+      });
+    }
+    widget.onExpanded(selected);
+  }
+
   @override
   Widget build(BuildContext context) {
     final itemWidth = MediaQuery.sizeOf(context).width * _viewportFraction;
     return SizedBox(
       height: MediaQuery.sizeOf(context).height,
       child: PageView.builder(
-        physics: _expandedID.isNotEmpty ? const NeverScrollableScrollPhysics() : null,
+        physics: _expandedID.isNotEmpty
+            ? const NeverScrollableScrollPhysics()
+            : null,
         controller: _pageController,
 
         padEnds: true,
@@ -145,7 +158,7 @@ class _ImageCarouselState extends State<ImageCarousel> {
                   switchInCurve: Curves.easeIn,
                   switchOutCurve: Curves.easeOut,
                   child: seen
-                      ? ImageSquare(
+                      ? ImageViewer(
                           key: ValueKey('image_${image.uid}'),
                           image: image,
                           selected: image.uid == widget.selectedID,
@@ -153,25 +166,12 @@ class _ImageCarouselState extends State<ImageCarousel> {
                           expanded:
                               _expandedID == image.uid &&
                               image.uid == widget.selectedID,
-                          onTap: (selected) {
-                            if (selected) {
-                              setState(() {
-                                _expandedID = image.uid;
-                              });
-                            } else {
-                              setState(() {
-                                _expandedID = '';
-                              });
-                            }
-
-                            widget.onExpanded(selected);
-                          },
+                          onTap: (selected) => _toggleExpanded(
+                            selected: selected,
+                            imageUID: image.uid,
+                          ),
                         )
-                      : SizedBox(
-                          key: ValueKey('placeholder_${image.uid}'),
-                          height: itemWidth,
-                          width: itemWidth,
-                        ),
+                      : SizedBox(height: itemWidth, width: itemWidth),
                 ),
               ),
             ),

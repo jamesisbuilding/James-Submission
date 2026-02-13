@@ -114,19 +114,17 @@ class ImageAnalysisService {
 
   Future<void> wipeViewerCache() async {
     try {
-      // 1. Target the Temporary Directory
+      
       final tempDir = await getTemporaryDirectory();
 
-      // 2. Target the specific sub-folder we created
       final cacheDirectory = Directory(p.join(tempDir.path, 'viewer_cache'));
 
       if (await cacheDirectory.exists()) {
-        // 3. Delete the entire folder and all images inside at once
-        // recursive: true makes this a "nuclear" delete for that folder
+        
         await cacheDirectory.delete(recursive: true);
       }
     } catch (_) {
-      // This might fail if a file is currently being "read" by the UI
+      debugPrint('Unable to wipe cache');
     }
   }
 }

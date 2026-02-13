@@ -31,6 +31,11 @@ void registerImageAnalysisModule(
   );
 
   getIt.registerLazySingleton<ImageAnalysisService>(
-    () => ImageAnalysisService(pipeline: getIt<AbstractImageAnalysisPipeline>()),
+    () {
+      final service =
+          ImageAnalysisService(pipeline: getIt<AbstractImageAnalysisPipeline>());
+      service.wipeViewerCache(); // fire-and-forget on first creation
+      return service;
+    },
   );
 }

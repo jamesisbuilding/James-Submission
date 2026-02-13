@@ -25,34 +25,15 @@ Future<void> configureDependencies() async {
   // TTS – key from app/.env
   _sl.registerLazySingleton<AbstractTtsService>(
     () => TtsAudioGenerationService(apiKey: Env.elevenLabsApiKey),
-  ); // apiKey is required
+  );
 
   // Share
   _sl.registerLazySingleton<AbstractShareService>(
     () => ShareServiceImpl(),
   );
 
-  // Image viewer: datasource, repository, bloc (factory)
-  _sl.registerLazySingleton<ImageRemoteDatasource>(
-    () => ImageRemoteDatasourceImpl(),
-  );
-
-  _sl.registerLazySingleton<ImageRepository>(
-    () => ImageRepositoryImpl(
-      remoteDatasource: _sl.get<ImageRemoteDatasource>(),
-      imageAnalysisService: _sl.get<ImageAnalysisService>(),
-    ),
-  );
-
-  _sl.registerFactory<ImageViewerBloc>(
-    () => ImageViewerBloc(imageRepository: _sl.get<ImageRepository>()),
-  );
-
-  _sl.registerFactory<TtsCubit>(
-    () => TtsCubit(ttsService: _sl.get<AbstractTtsService>()),
-  );
-
-  _sl.registerFactory<FavouritesCubit>(() => FavouritesCubit());
+  // Image viewer: feature owns its blocs; app has no knowledge of them
+  registerImageViewerModule(_sl);
 
   _sl.registerLazySingleton<ThemeNotifier>(
     () => ThemeNotifier(initialMode: ThemeMode.dark),

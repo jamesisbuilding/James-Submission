@@ -4,6 +4,8 @@ Attached in my Coding Assessment for Aurora
 
 Video Demo Link - https://drive.google.com/drive/folders/1iASAfGXv4h4pXNdNDrNEwNQArccPV5KO?usp=sharing
 
+Please view the 'audio and text highlighting' video to see the demo (intro video, text highlighting and text to speech)
+
 ### Running the app ###
 Add both API keys to **app/.env**:
 ```
@@ -39,7 +41,7 @@ The app is best optimized for iPhone 17 Pro. Although it should run on other dev
 11. Expansion mode - expand the image such that you can see the title, description and colour palette of the image
 12. Linear interpolation between colors – as the carousel moves the background palette changes with respect to the ratio of which image is primarily visible
 13. Expandable image cards – tap an image to expand and see the full title and description, with the play button for TTS
-14. Accessibility – interfaces with Eleven Labs API to read out the short story/description of the image
+14. Accessibility – interfaces with Eleven Labs API to read out the short story/description of the image and have highlighted text on each word. 
 15. Favourite and Share – users can favourite and share images (share uses the local image and description)
 16. Dynamic 'Another' button – changes colour based on the image's color palette, ensuring at least 7 contrast levels for accessibility and holds next up image or selected image as a faint background. 
 17. Light and Dark mode – toggle via the button at the top right

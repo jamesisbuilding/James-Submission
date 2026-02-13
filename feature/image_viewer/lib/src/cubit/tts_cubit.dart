@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:tts_service/tts_service.dart';
 
@@ -11,27 +13,55 @@ class TtsCubit extends Cubit<TtsState> {
         super(const TtsState());
 
   final AbstractTtsService _ttsService;
+  StreamSubscription<TtsCurrentWord>? _wordSubscription;
 
-  Future<void> play(String text) async {
-    emit(state.copyWith(isLoading: true));
+  Future<void> play(String title, String description) async {
+    _wordSubscription?.cancel();
+    _wordSubscription = null;
+    emit(state.copyWith(isLoading: true, nullifyCurrentWord: true));
+
+    await _ttsService.stop();
+
+    _wordSubscription = _ttsService.currentWordStream.listen((w) {
+      if (!isClosed) emit(state.copyWith(currentWord: w));
+    });
     try {
       await _ttsService.playTextToSpeech(
-        text,
+        title,
+        description,
         onPlaybackComplete: () {
           if (!isClosed) {
-            emit(state.copyWith(isLoading: false, isPlaying: false));
+            _wordSubscription?.cancel();
+            _wordSubscription = null;
+            emit(state.copyWith(
+              isLoading: false,
+              isPlaying: false,
+              nullifyCurrentWord: true,
+            ));
           }
         },
       );
       emit(state.copyWith(isLoading: false, isPlaying: true));
     } catch (_) {
-      emit(state.copyWith(isLoading: false, isPlaying: false));
+      _wordSubscription?.cancel();
+      _wordSubscription = null;
+      emit(state.copyWith(
+        isLoading: false,
+        isPlaying: false,
+        nullifyCurrentWord: true,
+      ));
       rethrow;
     }
   }
 
   Future<void> stop() async {
+    _wordSubscription?.cancel();
+    _wordSubscription = null;
+    emit(state.copyWith(
+      isLoading: false,
+      isPlaying: false,
+      nullifyCurrentWord: true,
+    ));
     await _ttsService.stop();
-    emit(state.copyWith(isLoading: false, isPlaying: false));
   }
 }

@@ -43,7 +43,7 @@ class ControlBarMainButton extends StatelessWidget {
           final atEndOfVisible =
               state.visibleImages.isNotEmpty &&
               state.selectedImage == state.visibleImages.last;
-          final imageForBackground = state.selectedImage;
+        
 
           final nextImageForBackground =
               atEndOfVisible && state.fetchedImages.isNotEmpty
@@ -55,7 +55,7 @@ class ControlBarMainButton extends StatelessWidget {
               label: 'another',
               backgroundColor: bgColor,
               foregroundColor: fgColor,
-              backgroundImage: imageProviderForImage(imageForBackground),
+              backgroundImage: imageProviderForImage(nextImageForBackground),
               onTap: () => onAnotherTap(),
               mode: state.loadingType == ViewerLoadingType.manual
                   ? MainButtonMode.audio

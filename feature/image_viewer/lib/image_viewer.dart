@@ -1,5 +1,6 @@
 library image_viewer;
 
+export 'src/di/image_viewer_module.dart';
 export 'src/bloc/image_viewer_bloc.dart';
 export 'src/cubit/cubit.dart';
 export 'src/bloc/image_viewer_event.dart';

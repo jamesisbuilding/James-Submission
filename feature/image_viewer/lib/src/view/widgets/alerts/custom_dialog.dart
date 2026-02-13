@@ -33,7 +33,9 @@ void showCustomDialog({
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
               child: AlertDialog(
-                backgroundColor: Theme.of(context).colorScheme.surface.withValues(alpha: 0.9),
+                backgroundColor: Theme.of(
+                  context,
+                ).colorScheme.surface.withValues(alpha: 0.9),
                 alignment: Alignment.center,
                 title: Row(
                   mainAxisAlignment: MainAxisAlignment.center,

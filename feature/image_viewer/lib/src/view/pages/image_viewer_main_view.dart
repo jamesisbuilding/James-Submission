@@ -2,14 +2,13 @@ import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_analysis_service/image_analysis_service.dart';
-import 'package:image_viewer/src/bloc/image_viewer_bloc.dart';
-import 'package:image_viewer/src/bloc/image_viewer_event.dart';
-import 'package:image_viewer/src/bloc/image_viewer_state.dart';
-import 'package:image_viewer/src/cubit/tts_cubit.dart';
+import 'package:image_viewer/image_viewer.dart';
 import 'package:image_viewer/src/view/widgets/alerts/custom_dialog.dart';
 import 'package:image_viewer/src/view/widgets/background/image_viewer_background.dart';
-import 'package:image_viewer/src/view/widgets/control_bar.dart';
+import 'package:image_viewer/src/view/widgets/control_bar/control_bar.dart';
 import 'package:image_viewer/src/view/widgets/image_carousel.dart';
+
+part 'carousel_scope.dart';
 
 const _slotCount = 5;
 const _minColorsForShader = 4;
@@ -115,6 +114,9 @@ class _ImageViewerContentState extends State<_ImageViewerContent> {
     final bloc = context.read<ImageViewerBloc>();
     bloc.add(UpdateSelectedImage(image: image));
 
+    // Stop TTS when switching images so highlight matches the visible content
+    context.read<TtsCubit>().stop();
+
     // Prefetch when nearing end (2 pages from last); skip if already loading
     if (page == images.length - 2 &&
         bloc.state.loadingType == ViewerLoadingType.none) {
@@ -123,7 +125,9 @@ class _ImageViewerContentState extends State<_ImageViewerContent> {
   }
 
   _toggleExpandedView({required bool expanded}) {
-   
+    if (!expanded) {
+      context.read<TtsCubit>().stop();
+    }
     setState(() {
       _expandedView = expanded;
     });
@@ -175,7 +179,7 @@ class _ImageViewerContentState extends State<_ImageViewerContent> {
                 selectedImage != null &&
                 selectedImage.url.isNotEmpty;
 
-            return _CarouselControllerScope(
+            return CarouselControllerScope(
               images: images,
               selectedImage: selectedImage,
               canShowContent: canShowContent,
@@ -195,205 +199,4 @@ class _ImageViewerContentState extends State<_ImageViewerContent> {
       ),
     );
   }
-}
-
-/// Owns PageController and provides nextPage for ControlBar.
-class _CarouselControllerScope extends StatefulWidget {
-  const _CarouselControllerScope({
-    required this.images,
-    required this.selectedImage,
-    required this.canShowContent,
-    required this.blendedColorsNotifier,
-    required this.isLoaded,
-    required this.onVisibleRatioChange,
-    required this.onPageChange,
-    required this.expandedView,
-    required this.onExpanded,
-    required this.onThemeToggle,
-    required this.onNextPage,
-    this.onShareTap,
-  });
-
-  final List<ImageModel>? images;
-  final ImageModel? selectedImage;
-  final bool canShowContent;
-  final ValueNotifier<List<Color>> blendedColorsNotifier;
-  final bool isLoaded;
-  final void Function(List<ImageModel> images, List<int> ratio)
-      onVisibleRatioChange;
-  final void Function(List<ImageModel> images, int page) onPageChange;
-  final bool expandedView;
-  final Function(bool) onExpanded;
-  final VoidCallback onThemeToggle;
-  final Function onNextPage;
-  final void Function(ImageModel?)? onShareTap;
-
-  @override
-  State<_CarouselControllerScope> createState() =>
-      _CarouselControllerScopeState();
-}
-
-class _CarouselControllerScopeState extends State<_CarouselControllerScope> {
-  PageController? _pageController;
-
-  static const _viewportFraction = 0.8;
-
-  void nextPage() {
-    widget.onNextPage();
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    if (widget.canShowContent &&
-        widget.images != null &&
-        widget.selectedImage != null) {
-      _initController();
-    }
-  }
-
-  void _initController() {
-    final images = widget.images!;
-    final selected = widget.selectedImage!;
-    final initialPage = images
-        .indexWhere((i) => i.uid == selected.uid)
-        .clamp(0, images.length - 1);
-    _pageController = PageController(
-      viewportFraction: _viewportFraction,
-      initialPage: initialPage,
-    );
-    context.read<ImageViewerBloc>().add(
-      CarouselControllerRegistered(controller: _pageController!),
-    );
-  }
-
-  @override
-  void didUpdateWidget(covariant _CarouselControllerScope oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (!oldWidget.canShowContent &&
-        widget.canShowContent &&
-        widget.images != null &&
-        widget.selectedImage != null &&
-        _pageController == null) {
-      _initController();
-     
-      setState(() {});
-    }
-  }
-
-  @override
-  void dispose() {
-    if (_pageController != null) {
-      context.read<ImageViewerBloc>().add(
-        const CarouselControllerUnregistered(),
-      );
-    }
-    _pageController?.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final canShowContent = widget.canShowContent;
-    final images = widget.images;
-    final selectedImage = widget.selectedImage;
-
-    return Stack(
-      alignment: Alignment.center,
-      children: [
-        if (canShowContent && images != null && selectedImage != null) ...[
-          if (widget.isLoaded)
-            _BlendedColorsSync(
-              selectedImage: selectedImage,
-              onSync: (colors) => widget.blendedColorsNotifier.value = colors,
-            ),
-          Positioned.fill(
-            child: AnimatedBackground(
-              colorsListenable: widget.blendedColorsNotifier,
-            ),
-          ),
-        ],
-        if (canShowContent &&
-            images != null &&
-            selectedImage != null &&
-            _pageController != null)
-          ImageCarousel(
-            controller: _pageController,
-            images: images,
-            selectedID: selectedImage.uid,
-            onVisibleRatioChange: (ratio) =>
-                widget.onVisibleRatioChange(images, ratio),
-            onPageChange: (page) => widget.onPageChange(images, page),
-            onExpanded: (expanded) => widget.onExpanded(expanded),
-          ),
-        ControlBar(
-          mode: widget.expandedView
-              ? MainButtonMode.audio
-              : MainButtonMode.another,
-          backgroundColor: widget.selectedImage?.lightestColor,
-          onAnotherTap: () => nextPage(),
-          onShareTap: widget.onShareTap,
-          onPlayTapped: (playing) {
-            if (playing) {
-              final blocState = context.read<ImageViewerBloc>().state;
-              if (blocState.selectedImage != null) {
-                final text =
-                    '${blocState.selectedImage?.title} ${blocState.selectedImage?.description}';
-                context.read<TtsCubit>().play(text);
-              }
-            } else {
-              context.read<TtsCubit>().stop();
-            }
-          },
-        ),
-
-        Positioned(
-          top: MediaQuery.paddingOf(context).top + 8,
-          right: 16,
-          child: ThemeSwitch(onThemeToggle: widget.onThemeToggle),
-        ),
-      ],
-    );
-  }
-}
-
-/// Syncs blended colors when bloc state changes (e.g. fetch, initial load).
-class _BlendedColorsSync extends StatefulWidget {
-  const _BlendedColorsSync({required this.selectedImage, required this.onSync});
-
-  final ImageModel selectedImage;
-  final void Function(List<Color>) onSync;
-
-  @override
-  State<_BlendedColorsSync> createState() => _BlendedColorsSyncState();
-}
-
-class _BlendedColorsSyncState extends State<_BlendedColorsSync> {
-  String? _lastSyncedUid;
-
-  @override
-  void initState() {
-    super.initState();
-    _syncIfNeeded();
-  }
-
-  @override
-  void didUpdateWidget(covariant _BlendedColorsSync oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    _syncIfNeeded();
-  }
-
-  void _syncIfNeeded() {
-    if (_lastSyncedUid == widget.selectedImage.uid) return;
-    _lastSyncedUid = widget.selectedImage.uid;
-    final palette = widget.selectedImage.colorPalette;
-    widget.onSync(
-      _ensureMinColors(
-        palette.isNotEmpty ? List.of(palette) : List.of(_fallbackPalette),
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) => const SizedBox.shrink();
 }
