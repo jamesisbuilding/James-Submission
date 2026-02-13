@@ -107,6 +107,8 @@ class ImageViewerBloc extends Bloc<ImageViewerEvent, ImageViewerState> {
             loadingType: ViewerLoadingType.manual,
           ),
         );
+      }else if (state.loadingType == ViewerLoadingType.background){
+        emit(state.copyWith(loadingType: ViewerLoadingType.manual));
       }
     }
   }
