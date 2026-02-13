@@ -14,7 +14,10 @@ ELEVENLABS_API_KEY=your_key  # Eleven Labs TTS
 Then run build_runner in the app to generate envied code:
 ```
 cd app && dart run build_runner build -d
-``` 
+```
+
+The app is best optimized for iPhone 17 Pro. Although it should run on other devices, additional testing is required to ensure full compatibility.
+
 
 ### The app contains the following ###
 
@@ -41,7 +44,7 @@ cd app && dart run build_runner build -d
 16. Dynamic 'Another' button – changes colour based on the image's color palette, ensuring at least 7 contrast levels for accessibility and holds next up image or selected image as a faint background. 
 17. Light and Dark mode – toggle via the button at the top right
 18. Control bar – collapsible and updates to changes in selected image colors
-19. Main button – dynamic and changes depending on whether we're in image view, loading view or expanded (play/pause for TTS)
+19. Main button – dynamic and changes depending on whether we're in image view, loading view or expanded (play/pause for TTS) Contrast ratio threshold (WCAG AAA). Minimum 7:1 for accessibility.
 20. Error dialogs – we surface fetch failures and duplicate exhaustion so the user knows what's going on
 
 
