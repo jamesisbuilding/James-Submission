@@ -7,7 +7,7 @@ import 'package:image_viewer/src/domain/repositories/image_repository.dart';
 
 const _maxRetriesPerSlot = 3;
 const _initialBackoffMs = 500;
-const _maxSequentialDuplicates = 3;
+const _maxSequentialDuplicates = 1;
 
 class ImageRepositoryImpl implements ImageRepository {
   ImageRepositoryImpl({

@@ -5,7 +5,7 @@ Attached in my Coding Assessment for Aurora
 ### The app contains the following ###
 
 ### Launch
-1. Native splash screen (platform launch screen)
+1. Native splash screen (platform launch screen - better with sound (no sound in emulator recording))
 2. Launcher video 
 3. Streaming in initial batch of images – preloads whilst the video plays
 

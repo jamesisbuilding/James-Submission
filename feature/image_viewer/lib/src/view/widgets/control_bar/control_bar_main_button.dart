@@ -23,7 +23,8 @@ class ControlBarMainButton extends StatelessWidget {
         buildWhen: (prev, curr) {
           return prev.selectedImage?.uid != curr.selectedImage?.uid ||
               curr.loadingType != prev.loadingType ||
-              (curr.fetchedImages.isNotEmpty != prev.fetchedImages.isNotEmpty) ||
+              (curr.fetchedImages.isNotEmpty !=
+                  prev.fetchedImages.isNotEmpty) ||
               (curr.fetchedImages.isNotEmpty &&
                   (prev.fetchedImages.isEmpty ||
                       prev.fetchedImages.first.uid !=
@@ -39,10 +40,13 @@ class ControlBarMainButton extends StatelessWidget {
           bgColor = isLightMode ? lightest : darkest;
           fgColor = isLightMode ? darkest : lightest;
 
-          final atEndOfVisible = state.visibleImages.isNotEmpty &&
+          final atEndOfVisible =
+              state.visibleImages.isNotEmpty &&
               state.selectedImage == state.visibleImages.last;
-          final imageForBackground = atEndOfVisible &&
-                  state.fetchedImages.isNotEmpty
+          final imageForBackground = state.selectedImage;
+
+          final nextImageForBackground =
+              atEndOfVisible && state.fetchedImages.isNotEmpty
               ? state.fetchedImages.first
               : state.selectedImage;
 

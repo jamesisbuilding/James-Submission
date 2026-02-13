@@ -40,6 +40,7 @@ class MainButton extends StatefulWidget {
   /// Optional background image (e.g. selected image) at 0.3 opacity.
   final ImageProvider? backgroundImage;
 
+
   const MainButton({
     super.key,
     required this.label,
