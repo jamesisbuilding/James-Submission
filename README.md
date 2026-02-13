@@ -4,7 +4,7 @@ Attached in my Coding Assessment for Aurora
 
 Video Demo Link - https://drive.google.com/drive/folders/1iASAfGXv4h4pXNdNDrNEwNQArccPV5KO?usp=sharing
 
-Please view the 'audio and text highlighting' video to see the demo (intro video, text highlighting and text to speech)
+Please view the 'audio and text highlighting' video to see a smaller demo with sound (intro video, text highlighting and text to speech)
 
 ### Running the app ###
 Add both API keys to **app/.env**:
