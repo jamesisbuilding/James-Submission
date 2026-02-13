@@ -30,9 +30,11 @@ The project is structured as a modular Flutter app – each feature and core con
 
 ### Architectural decisions
 
-**Widgets – a bit messy**
+**With more time – Optimisation, Refactoring Eleven Labs and LLM resilience**
 
 The view layer (control bar, image carousel, main view) could be broken down further and optimised. Right now some widgets are doing more than they should and the nesting can get deep. I prioritised UX and polish and getting the flow and behaviour right over refactoring the UI into smaller, more composable pieces. That refactor would be a natural next step – extracting more presentational components, tightening the separation between layout and logic, and reducing rebuild scope.
+
+I would make Eleven Labs (TTS) and LLM (ChatGPT/Gemini) failures more robust – retries, fallbacks, clearer error handling and user feedback when those services fail.
 
 **No Retrofit – raw Dio**
 
@@ -41,6 +43,8 @@ API calls use Dio directly rather than Retrofit. For this project we only have a
 **Overall focus**
 
 Polish and end experience were the key focus here – making it feel good to use, with smooth transitions, clear feedback and no rough edges.
+
+
 
 ### The app contains the following ###
 
