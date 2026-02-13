@@ -75,3 +75,7 @@ API calls use Dio directly rather than Retrofit. For this project we only have a
 
 Polish and end experience were the key focus here – making it feel good to use, with smooth transitions, clear feedback and no rough edges.
 
+### Testing
+
+I haven't added tests due to time constraints and prioritising polish, but with more time I would introduce unit, integration and golden tests. Unit tests for business logic (bloc, repository, cubits), integration tests for flows (fetch → display → manual fetch), and golden tests for UI – e.g. asserting the video fade and image viewer transition align correctly, and that the expanding carousel layout remains visible and consistent across device sizes and orientations.
+
