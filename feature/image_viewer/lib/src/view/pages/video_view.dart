@@ -6,10 +6,7 @@ import 'package:video_player/video_player.dart';
 /// Calls [onVideoComplete] when playback finishes.
 /// Tapping the video will stop playback and exit (calls [onVideoComplete]).
 class VideoView extends StatefulWidget {
-  const VideoView({
-    super.key,
-    this.onVideoComplete,
-  });
+  const VideoView({super.key, this.onVideoComplete});
 
   final VoidCallback? onVideoComplete;
 
@@ -58,15 +55,24 @@ class _VideoViewState extends State<VideoView> {
 
   @override
   Widget build(BuildContext context) {
-    return AspectRatio(
-      aspectRatio: _controller.value.aspectRatio,
-      child: _controller.value.isInitialized
-          ? GestureDetector(
+    return Stack(
+      children: [
+        Assets.video.thumbnail.designImage(
+          key: const ValueKey('thumbnail'),
+          height: MediaQuery.sizeOf(context).height,
+          width: MediaQuery.sizeOf(context).width,
+        ),
+        if (_controller.value.isInitialized)
+          AspectRatio(
+            key: const ValueKey('video'),
+            aspectRatio: _controller.value.aspectRatio,
+            child: GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTap: _handleTap,
               child: VideoPlayer(_controller),
-            )
-          :  Assets.video.thumbnail.designImage()
+            ),
+          ),
+      ],
     );
   }
 }

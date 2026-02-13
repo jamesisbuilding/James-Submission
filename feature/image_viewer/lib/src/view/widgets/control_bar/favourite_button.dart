@@ -1,0 +1,37 @@
+import 'package:design_system/design_system.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:image_analysis_service/image_analysis_service.dart';
+import 'package:image_viewer/image_viewer.dart';
+
+class FavouriteStarButton extends StatelessWidget {
+  const FavouriteStarButton({this.selectedImage});
+
+  final ImageModel? selectedImage;
+
+  @override
+  Widget build(BuildContext context) {
+    final uid = selectedImage?.uid ?? '';
+    final theme = Theme.of(context);
+
+    return BlocBuilder<FavouritesCubit, Set<String>>(
+      buildWhen: (prev, curr) => prev.contains(uid) != curr.contains(uid),
+      builder: (context, favourites) {
+        final isFavourite = uid.isNotEmpty && favourites.contains(uid);
+        return CustomIconButton(
+          onTap: () {
+            if (uid.isNotEmpty) {
+              context.read<FavouritesCubit>().toggle(uid);
+            }
+          },
+          icon: Assets.icons.star.designImage(
+            height: 28,
+            width: 28,
+            color:
+                isFavourite ? Colors.yellow : theme.colorScheme.onSurface,
+          ),
+        );
+      },
+    );
+  }
+}
