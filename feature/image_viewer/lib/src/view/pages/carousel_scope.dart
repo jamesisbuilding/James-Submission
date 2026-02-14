@@ -126,9 +126,7 @@ class CarouselControllerScopeState extends State<CarouselControllerScope> {
 
   @override
   void dispose() {
-    if (_pageController != null && _bloc != null) {
-      _bloc!.add(const CarouselControllerUnregistered());
-    }
+    _bloc?.add(const CarouselControllerUnregistered());
     _pageController?.dispose();
     super.dispose();
   }

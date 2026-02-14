@@ -5,3 +5,11 @@ class NoMoreImagesException implements Exception {
   @override
   String toString() => message ?? 'NoMoreImagesException';
 }
+
+/// Thrown when all image fetch attempts fail after retries.
+class ImageFetchFailedException implements Exception {
+  ImageFetchFailedException([this.message]);
+  final String? message;
+  @override
+  String toString() => message ?? 'ImageFetchFailedException';
+}

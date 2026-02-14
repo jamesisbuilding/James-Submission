@@ -104,6 +104,8 @@ flutter pub get
 dart run build_runner build -d
 ```
 
+To use Gemini instead of ChatGPT: `flutter run -d IMAGE_ANALYSIS_PIPELINE=gemini`
+
 The app is best optimized for iPhone 17 Pro. Although it should run on other devices, broader device-matrix testing would validate full compatibility.
 
 
@@ -173,11 +175,19 @@ The view layer has been refactored: the background loading indicator is integrat
 
 Eleven Labs (TTS) and LLM (ChatGPT/Gemini) could be made more robust – retries, fallbacks, clearer error handling and user feedback when those services fail. 
 
+**Hardening (done)**
+
+- **Release-safe logging** — `debugPrint` wrapped in `kDebugMode`; no verbose logs in release
+- **Typed exceptions** — `ImageFetchFailedException`, `NoMoreImagesException`
+- **Env-driven pipeline** — `flutter run -d IMAGE_ANALYSIS_PIPELINE=gemini`
+- **Null-safe carousel** — `_bloc!` removed; uses null-aware `?.`
+- **UX polish** — Main button label "Another" capitalised
+
 ### Recommended next hardening steps
 1. **Tests (82.1% coverage):** Unit tests for bloc, repository, datasource, cubits, and DI; widget tests for control bar, expanded card, custom dialog; integration tests for fetch flow and video → viewer transition; golden tests for UI regression. See [Testing](#testing).
-2. Introduce environment-driven pipeline selection (ChatGPT vs Gemini) instead of code-level toggle.
+2. ~~Environment-driven pipeline selection~~ — Done: use `-d IMAGE_ANALYSIS_PIPELINE=gemini`.
 3. Add structured logging/telemetry and production log-level controls.
-4. Consider an explicit repository/result error model to remove generic thrown exceptions.
+4. ~~Explicit repository error model~~ — Done: `ImageFetchFailedException`, `NoMoreImagesException`.
 5. ~~Add CI checks~~ — Done: `.github/workflows/ci.yml` runs `flutter pub get`, `flutter analyze`, and `flutter test` on app, image_viewer, and share_service.
 
 ---
@@ -195,7 +205,7 @@ For production deployment, consider adding:
 
 | Area | Recommendation |
 |------|----------------|
-| **Logging** | Structured logging (e.g. `logger` package) with configurable levels; reduce `debugPrint` in release; log fetch failures, TTS errors, and user actions for diagnostics. |
+| **Logging** | All `debugPrint` wrapped in `kDebugMode` (release-clean). Next: `logger` package with configurable levels for production diagnostics. |
 | **Crash reporting** | Firebase Crashlytics (already have Firebase) or Sentry; ensure unhandled exceptions and Flutter framework errors are captured. |
 | **Analytics** | Firebase Analytics or equivalent for carousel engagement, share/favourite events, TTS usage, and error-surface rates. |
 | **Feature flags** | Environment-driven toggles for ChatGPT vs Gemini, TTS on/off, or A/B variants without app store releases. |

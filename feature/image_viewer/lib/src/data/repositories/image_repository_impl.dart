@@ -7,6 +7,11 @@ import 'package:image_viewer/src/data/datasources/image_remote_datasource.dart';
 import 'package:image_viewer/src/domain/exceptions/image_viewer_exceptions.dart';
 import 'package:image_viewer/src/domain/repositories/image_repository.dart';
 
+/// Release-safe: only logs in debug/profile.
+void _log(String message) {
+  if (kDebugMode) debugPrint('[ImageRepo] $message');
+}
+
 const _maxRetriesPerSlot = 3;
 const _initialBackoffMs = 500;
 const _maxSequentialDuplicates = 3;
@@ -31,11 +36,7 @@ class ImageRepositoryImpl implements ImageRepository {
     int count = 1,
     List<ImageModel> existingImages = const [],
   }) async* {
-    debugPrint(
-      '[ImageRepo] runImageRetrieval called with params: count=$count, existingImages.length=${existingImages.length}, '
-      '_seenSignatures.length=${_seenSignatures.length}, '
-      'existingImages.uids=[${existingImages.map((e) => e.uid).join(', ')}]',
-    );
+    _log('runImageRetrieval count=$count existing=${existingImages.length} seen=${_seenSignatures.length}');
 
     _seenSignatures.addAll(
       existingImages
@@ -133,15 +134,14 @@ class ImageRepositoryImpl implements ImageRepository {
       if (remainingToFetch <= 0) break;
 
       if (round < _maxRetriesPerSlot) {
-        debugPrint('[ImageRepo] Retrying in ${backoffMs}ms');
+        _log('Retrying in ${backoffMs}ms');
         await Future.delayed(Duration(milliseconds: backoffMs));
         backoffMs *= 2;
       }
     }
 
     if (currentPool.length <= existingImages.length) {
-      debugPrint('[ImageRepo] All image analyses failed after retries');
-      throw Exception('All image analyses failed after retries');
+      throw ImageFetchFailedException('All image analyses failed after retries');
     }
   }
 }

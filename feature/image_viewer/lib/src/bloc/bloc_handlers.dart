@@ -32,13 +32,15 @@ extension ImageBlocHandlers on ImageViewerBloc {
       )) {
         final sig = image.pixelSignature;
         if (sig.isEmpty || existingSignatures.contains(sig)) {
-          if (sig.isNotEmpty) {
+          if (kDebugMode && sig.isNotEmpty) {
             debugPrint('[Bloc] Skipping duplicate pixelSignature: $sig');
           }
           continue;
         }
         if (!tryReserveSignature(sig)) {
-          debugPrint('[Bloc] Skipping reserved/accepted pixelSignature: $sig');
+          if (kDebugMode) {
+            debugPrint('[Bloc] Skipping reserved/accepted pixelSignature: $sig');
+          }
           continue;
         }
         existingSignatures.add(sig);

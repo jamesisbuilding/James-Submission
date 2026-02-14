@@ -167,12 +167,12 @@ class TtsAudioGenerationService implements AbstractTtsService {
           'Failed to load audio: ${response.statusCode} ${response.data}',
         );
       }
-    } catch (e) {
+    } catch (e, st) {
       await _completionSubscription?.cancel();
       await _positionSubscription?.cancel();
       _completionSubscription = null;
       _positionSubscription = null;
-      debugPrint('[TTS] Error: $e');
+      if (kDebugMode) debugPrint('[TTS] Error: $e\n$st');
       rethrow;
     } finally {
       _isSpeaking = false;

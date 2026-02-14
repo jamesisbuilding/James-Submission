@@ -12,11 +12,16 @@ final GetIt _sl = GetIt.instance;
 GetIt get serviceLocator => _sl;
 
 /// Initializes all dependencies. Call before [runApp].
+/// Override pipeline via dart-define: flutter run -d IMAGE_ANALYSIS_PIPELINE=gemini
 Future<void> configureDependencies() async {
-  // Image analysis: switch pipelineType between gemini and chatGpt
+  final pipelineEnv = String.fromEnvironment('IMAGE_ANALYSIS_PIPELINE', defaultValue: 'chatGpt');
+  final pipelineType = switch (pipelineEnv.toLowerCase()) {
+    'gemini' => ImageAnalysisPipelineType.gemini,
+    _ => ImageAnalysisPipelineType.chatGpt,
+  };
   registerImageAnalysisModule(
     _sl,
-    pipelineType: ImageAnalysisPipelineType.chatGpt, // or .gemini
+    pipelineType: pipelineType,
     openaiApiKey: Env.openaiApiKey,
   );
   // Initialize pipeline (OpenAI client etc) before first use

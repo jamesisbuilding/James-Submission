@@ -41,9 +41,9 @@ class ChatGptImageAnalysisPipeline implements AbstractImageAnalysisPipeline {
   }) async {
     if (_client == null) await initialize();
     if (_client == null) {
-      debugPrint(
-        '[ChatGptImageAnalysisPipeline] Not initialized. Pass apiKey in constructor.',
-      );
+      if (kDebugMode) {
+        debugPrint('[ChatGptImageAnalysisPipeline] Not initialized. Pass apiKey in constructor.');
+      }
       return const ImageCaptionResult(
         title: 'Error',
         description: 'API key not configured',
@@ -88,7 +88,7 @@ class ChatGptImageAnalysisPipeline implements AbstractImageAnalysisPipeline {
         description: map['description'] as String? ?? 'No description',
       );
     } catch (e, stack) {
-      debugPrint('[ChatGptImageAnalysisPipeline] Error: $e\n$stack');
+      if (kDebugMode) debugPrint('[ChatGptImageAnalysisPipeline] Error: $e\n$stack');
       return const ImageCaptionResult(
         title: 'Error',
         description: 'Could not generate description',

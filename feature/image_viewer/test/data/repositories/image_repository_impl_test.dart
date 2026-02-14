@@ -121,8 +121,8 @@ void main() {
 
       expect(
         () => stream.toList(),
-        throwsA(isA<Exception>().having(
-          (e) => e.toString(),
+        throwsA(isA<ImageFetchFailedException>().having(
+          (e) => e.message,
           'message',
           contains('All image analyses failed'),
         )),
