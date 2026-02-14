@@ -241,10 +241,12 @@
       "name": "design_system",
       "version": "1.0.0+1",
       "dependencies": [
+        "cached_network_image",
         "cupertino_icons",
         "delayed_display",
         "flutter",
-        "go_router"
+        "go_router",
+        "shimmer"
       ]
     },
     {

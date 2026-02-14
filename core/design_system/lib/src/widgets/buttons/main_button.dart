@@ -1,4 +1,5 @@
 import 'package:delayed_display/delayed_display.dart';
+import 'package:design_system/design_system.dart';
 import 'package:design_system/src/utils/animated_press_mixin.dart';
 import 'package:flutter/material.dart';
 
@@ -30,7 +31,8 @@ class MainButton extends StatefulWidget {
 
   final bool? isLoading;
 
-  final ImageProvider? backgroundImage;
+  /// Network URL for background image. Rendered via [CachedImage] when non-empty.
+  final String? backgroundImageUrl;
 
   const MainButton({
     super.key,
@@ -43,7 +45,7 @@ class MainButton extends StatefulWidget {
     this.onPlayTapped,
     this.isPlaying,
     this.isLoading,
-    this.backgroundImage,
+    this.backgroundImageUrl,
   });
 
   @override
@@ -92,6 +94,9 @@ class _MainButtonState extends State<MainButton> with AnimatedPressMixin {
       colors: [backgroundColor, backgroundColor.withValues(alpha: 0.8)],
     );
 
+    final hasBackgroundImage = widget.backgroundImageUrl != null &&
+        widget.backgroundImageUrl!.isNotEmpty;
+
     return buildPressable(
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 250),
@@ -101,13 +106,6 @@ class _MainButtonState extends State<MainButton> with AnimatedPressMixin {
         decoration: BoxDecoration(
           gradient: gradient,
           border: Border.all(color: foregroundColor),
-          image: widget.backgroundImage != null
-              ? DecorationImage(
-                  image: widget.backgroundImage!,
-                  opacity: 0.3,
-                  fit: BoxFit.cover,
-                )
-              : null,
           boxShadow: [
             BoxShadow(
               color: backgroundColor.withValues(alpha: 0.18),
@@ -118,43 +116,61 @@ class _MainButtonState extends State<MainButton> with AnimatedPressMixin {
           ],
           borderRadius: widget.mode.borderRadius,
         ),
-        child: Center(
-          child: widget.mode == MainButtonMode.another
-              ? AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 0),
-                  switchInCurve: Curves.easeIn,
-                  switchOutCurve: Curves.easeOut,
-                  transitionBuilder: (child, animation) =>
-                      FadeTransition(opacity: animation, child: child),
-                  child: DelayedDisplay(
-                    delay: const Duration(milliseconds: 100),
-                    slidingBeginOffset: Offset(0, 0),
-                    child: Text(
-                      widget.label,
-                      key: const ValueKey('button_label_another'),
-                      style: TextStyle(
-                        fontWeight: FontWeight.w500,
-                        letterSpacing: 1,
-                        color: foregroundColor,
-                      ),
+        child: ClipRRect(
+          borderRadius: widget.mode.borderRadius,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              if (hasBackgroundImage)
+                Positioned.fill(
+                  child: Opacity(
+                    opacity: 0.3,
+                    child: CachedImage(
+                      url: widget.backgroundImageUrl!,
+                      fit: BoxFit.cover,
                     ),
                   ),
-                )
-              : widget.isLoading == true
-              ? SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      foregroundColor.withValues(alpha: 0.8),
-                    ),
-                  ),
-                )
-              : Icon(
-                  !_displayPlaying ? Icons.play_arrow : Icons.pause_sharp,
-                  key: ValueKey('audio_${_displayPlaying}'),
                 ),
+              Center(
+              child: widget.mode == MainButtonMode.another
+                  ? AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 0),
+                      switchInCurve: Curves.easeIn,
+                      switchOutCurve: Curves.easeOut,
+                      transitionBuilder: (child, animation) =>
+                          FadeTransition(opacity: animation, child: child),
+                      child: DelayedDisplay(
+                        delay: const Duration(milliseconds: 100),
+                        slidingBeginOffset: Offset(0, 0),
+                        child: Text(
+                          widget.label,
+                          key: const ValueKey('button_label_another'),
+                          style: TextStyle(
+                            fontWeight: FontWeight.w500,
+                            letterSpacing: 1,
+                            color: foregroundColor,
+                          ),
+                        ),
+                      ),
+                    )
+                  : widget.isLoading == true
+                  ? SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          foregroundColor.withValues(alpha: 0.8),
+                        ),
+                      ),
+                    )
+                  : Icon(
+                      !_displayPlaying ? Icons.play_arrow : Icons.pause_sharp,
+                      key: ValueKey('audio_${_displayPlaying}'),
+                    ),
+            ),
+            ],
+          ),
         ),
       ),
     );

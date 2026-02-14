@@ -106,7 +106,7 @@ The app is best optimized for iPhone 17 Pro. Although it should run on other dev
 10. Image visualisation fallbacks – we save the image locally and use cached network images so we have stable loading into the widget (no empty state)
 
 ### UI
-11. Expansion mode - expand the image such that you can see the title, description and colour palette of the image
+11. Expansion mode – expand the image to see title, description and colour palette. Stealth colour collector: tap "Collect Colors" in the palette view to save the image’s palette; collected state persists and reduces rebuild scope via CollectedColorsCubit
 12. Linear interpolation between colors – as the carousel moves the background palette changes with respect to the ratio of which image is primarily visible
 13. Expandable image cards – tap an image to expand and see the full title and description, with the play button for TTS
 14. Accessibility – interfaces with Eleven Labs API to read out the short story/description of the image and have highlighted text on each word. 
@@ -134,7 +134,7 @@ The project is structured as a modular Flutter app – each feature and core con
 - `domain` – Repository contracts, exceptions
 - `data` – Datasources, repository implementations
 - `bloc` – ImageViewerBloc for image state (fetch, selection, carousel)
-- `cubit` – TtsCubit for playback, FavouritesCubit for favourites (kept separate to limit rebuilds)
+- `cubit` – TtsCubit for playback, FavouritesCubit for favourites, CollectedColorsCubit for colour collector (kept separate to limit rebuilds)
 - `view` – Flow (ImageViewerFlow) orchestrates video + image viewer, plus pages and widgets
 
 **Patterns**

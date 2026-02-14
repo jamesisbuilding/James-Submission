@@ -3,8 +3,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_analysis_service/image_analysis_service.dart';
+import 'package:design_system/design_system.dart';
 import 'package:image_viewer/image_viewer.dart';
-import 'package:image_viewer/src/view/widgets/cached_network_image.dart';
 import 'package:shimmer_animation/shimmer_animation.dart';
 
 class ImageViewerSquare extends StatelessWidget {

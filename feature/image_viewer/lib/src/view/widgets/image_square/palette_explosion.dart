@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_analysis_service/image_analysis_service.dart';
 import 'package:image_viewer/image_viewer.dart';
-import 'package:image_viewer/src/utils/image_provider_utils.dart';
 import 'package:shimmer_animation/shimmer_animation.dart';
 
 class PaletteInteraction extends StatefulWidget {
@@ -191,7 +190,7 @@ class _PaletteInteractionState extends State<PaletteInteraction>
           if (isExpanded) const SizedBox(height: 300),
           if (isExpanded && !isExiting && !isCollected)
             MainButton(
-              backgroundImage: imageProviderForImage(widget.image),
+              backgroundImageUrl: widget.image.url,
               label: 'Collect Colors',
               onTap: triggerExit,
             ),

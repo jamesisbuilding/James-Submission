@@ -1,26 +1,35 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:image_analysis_service/image_analysis_service.dart';
 import 'package:shimmer/shimmer.dart';
 
+bool _isNetworkURL(String url) {
+  return url.startsWith('http://') ||
+      url.startsWith('https://') ||
+      url.startsWith('ftp://') ||
+      url.startsWith('www.');
+}
+
+/// A network image with caching, shimmer placeholder, and error fallback.
 class CachedImage extends StatelessWidget {
+  const CachedImage({
+    super.key,
+    required this.url,
+    this.fit,
+    this.width,
+    this.height,
+    this.borderRadius,
+  });
+
   final String url;
   final double? width;
   final double? height;
   final BorderRadiusGeometry? borderRadius;
   final BoxFit? fit;
-  const CachedImage(
-      {super.key,
-      required this.url,
-      this.fit,
-      this.width,
-      this.height,
-      this.borderRadius});
 
   @override
   Widget build(BuildContext context) {
-    if (url.isEmpty || !isNetworkURL(url)) {
-      return errorWidget(width, height, borderRadius, context);
+    if (url.isEmpty || !_isNetworkURL(url)) {
+      return _errorWidget(context);
     }
     return CachedNetworkImage(
       imageUrl: url,
@@ -39,37 +48,31 @@ class CachedImage extends StatelessWidget {
         width: width,
         height: height,
         borderRadius: borderRadius,
-        centerWidget:  Icon(
+        centerWidget: Icon(
           Icons.image,
-          color: Theme.of(context).primaryColor
+          color: Theme.of(context).colorScheme.primary,
         ),
       ),
-      errorWidget: (context, url, error) =>
-          errorWidget(width, height, borderRadius,context),
+      errorWidget: (context, url, error) => _errorWidget(context),
     );
   }
 
-  Widget errorWidget(
-    double? width,
-    double? height,
-    BorderRadiusGeometry? borderRadius,
-    BuildContext context, 
-  ) =>
-      Container(
+  Widget _errorWidget(BuildContext context) => Container(
         width: width,
         height: height,
         decoration: BoxDecoration(
           borderRadius: borderRadius,
-          color: Theme.of(context).primaryColor
+          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
         ),
         alignment: Alignment.center,
-        child:  Icon(
+        child: Icon(
           Icons.image_not_supported_outlined,
-          color: Theme.of(context).primaryColor
+          color: Theme.of(context).colorScheme.primary,
         ),
       );
 }
 
+/// Shimmer placeholder for image loading states.
 class ShimmerImage extends StatelessWidget {
   const ShimmerImage({
     super.key,
@@ -94,7 +97,7 @@ class ShimmerImage extends StatelessWidget {
         height: height,
         decoration: BoxDecoration(
           borderRadius: borderRadius,
-          color: Colors.white
+          color: Colors.white,
         ),
         child: Center(child: centerWidget),
       ),

@@ -6,9 +6,7 @@ extension ImageBlocHandlers on ImageViewerBloc {
     Emitter<ImageViewerState> emit,
   ) async {
     final bool isFirstLoad = state.visibleImages.isEmpty;
-    final bool isManual = event.loadingType == ViewerLoadingType.manual;
 
-    // Track if this is the first image returning from THIS specific stream
     bool isFirstArrivalFromStream = true;
 
     emit(state.copyWith(loadingType: event.loadingType));
@@ -40,7 +38,7 @@ extension ImageBlocHandlers on ImageViewerBloc {
               loadingType: ViewerLoadingType.background,
             ),
           );
-        } else if (isManual &&
+        } else if (state.loadingType == ViewerLoadingType.manual &&
             _isOnLastPage(state) &&
             isFirstArrivalFromStream) {
           final updatedVisible = [...state.visibleImages, image];

@@ -22,21 +22,28 @@ class ImageRepositoryImpl implements ImageRepository {
   final ImageRemoteDatasource _remoteDatasource;
   final ImageAnalysisService _imageAnalysisService;
 
+  /// Global set of pixel signatures seen across all fetches. Prevents duplicates
+  /// even when [existingImages] passed to [runImageRetrieval] is stale.
+  final Set<String> _seenSignatures = {};
+
   @override
   Stream<ImageModel> runImageRetrieval({
     int count = 1,
     List<ImageModel> existingImages = const [],
   }) async* {
-    // Print all the incoming params at the start of the future
     debugPrint(
       '[ImageRepo] runImageRetrieval called with params: count=$count, existingImages.length=${existingImages.length}, '
+      '_seenSignatures.length=${_seenSignatures.length}, '
       'existingImages.uids=[${existingImages.map((e) => e.uid).join(', ')}]',
     );
 
+    _seenSignatures.addAll(
+      existingImages
+          .map((e) => e.pixelSignature)
+          .where((s) => s.isNotEmpty),
+    );
+
     var currentPool = List<ImageModel>.from(existingImages);
-    final Set<String> seen = existingImages
-        .map((e) => e.pixelSignature)
-        .toSet();
 
     int remainingToFetch = count;
     int backoffMs = _initialBackoffMs;
@@ -50,7 +57,7 @@ class ImageRepositoryImpl implements ImageRepository {
       // Print state params each round for debugging
       debugPrint(
         '[ImageRepo] Round $round: remainingToFetch=$remainingToFetch, backoffMs=$backoffMs, sequentialDuplicates=$sequentialDuplicates, '
-        'currentPool.length=${currentPool.length}, seen.length=${seen.length}'
+        'currentPool.length=${currentPool.length}, _seenSignatures.length=${_seenSignatures.length}'
       );
 
       // Fetch URLs based on what's still missing
@@ -82,7 +89,7 @@ class ImageRepositoryImpl implements ImageRepository {
 
         final ImageModel? model = switch (result) {
           Success(:final value) => value,
-          Failure(:final message, :final type) => () {
+          Failure(:final type) => () {
             if (type == FailureType.duplicate) {
               sequentialDuplicates++;
               if (sequentialDuplicates >= _maxSequentialDuplicates) {
@@ -100,20 +107,21 @@ class ImageRepositoryImpl implements ImageRepository {
         };
 
         if (model != null) {
-          if (seen.contains(model.pixelSignature)) {
-            sequentialDuplicates++;
-            if (sequentialDuplicates >= _maxSequentialDuplicates) {
-              // Same: throw immediately, cancel remaining work
-              throw NoMoreImagesException(
-                'Too many sequential duplicates '
-                '${sequentialDuplicates}/$_maxSequentialDuplicates',
-              );
+          if (model.pixelSignature.isEmpty || _seenSignatures.contains(model.pixelSignature)) {
+            if (model.pixelSignature.isNotEmpty) {
+              sequentialDuplicates++;
+              if (sequentialDuplicates >= _maxSequentialDuplicates) {
+                throw NoMoreImagesException(
+                  'Too many sequential duplicates '
+                  '${sequentialDuplicates}/$_maxSequentialDuplicates',
+                );
+              }
             }
             continue;
           }
 
           sequentialDuplicates = 0;
-          seen.add(model.pixelSignature);
+          _seenSignatures.add(model.pixelSignature);
           currentPool.add(model);
           remainingToFetch--;
           yield model;
