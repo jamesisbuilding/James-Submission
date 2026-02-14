@@ -170,6 +170,10 @@ class CarouselControllerScopeState extends State<CarouselControllerScope> {
                   onPageChange: (page) => widget.onPageChange(images, page),
                   onExpanded: (expanded) => widget.onExpanded(expanded),
                 ),
+
+              BackgroundLoadingIndicator(
+                visibleWhen: (state) => state.visibleImages.isEmpty,
+              ),
             ],
           ),
         ),

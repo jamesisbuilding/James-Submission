@@ -44,8 +44,8 @@ class _ImageViewerFlowState extends State<ImageViewerFlow> {
     return MultiBlocProvider(
       providers: [
         BlocProvider(
-          create: (_) => getIt<ImageViewerBloc>()
-            ..add(const ImageViewerFetchRequested()),
+          create: (_) =>
+              getIt<ImageViewerBloc>()..add(const ImageViewerFetchRequested()),
         ),
         BlocProvider(create: (_) => getIt<TtsCubit>()),
         BlocProvider(create: (_) => getIt<FavouritesCubit>()),
@@ -62,26 +62,24 @@ class _ImageViewerFlowState extends State<ImageViewerFlow> {
             ),
           ),
           Transform.scale(
-          scale: 1.15,
-          child: Transform.translate(
-            offset: Offset(0, -4),
-            child: IgnorePointer(
-              ignoring: _videoComplete,
-              child: AnimatedOpacity(
-                opacity: _videoComplete ? 0 : 1,
-                duration: _fadeDuration,
-                child: ColoredBox(
-                  color: Colors.black,
-                  child: Center(
-                    child: VideoView(
-                      onVideoComplete: _onVideoComplete,
+            scale: 1.15,
+            child: Transform.translate(
+              offset: Offset(0, -15),
+              child: IgnorePointer(
+                ignoring: _videoComplete,
+                child: AnimatedOpacity(
+                  opacity: _videoComplete ? 0 : 1,
+                  duration: _fadeDuration,
+                  child: ColoredBox(
+                    color: Colors.black,
+                    child: Center(
+                      child: VideoView(onVideoComplete: _onVideoComplete),
                     ),
                   ),
                 ),
               ),
             ),
           ),
-        ),
         ],
       ),
     );

@@ -24,4 +24,39 @@ class ImageViewerBloc extends Bloc<ImageViewerEvent, ImageViewerState> {
   }
 
   final ImageRepository _imageRepository;
+
+  /// Signatures that are already accepted into bloc state.
+  final Set<String> _acceptedSignatures = <String>{};
+
+  /// Signatures currently being processed by active fetch handlers.
+  final Set<String> _inFlightSignatures = <String>{};
+
+  void seedAcceptedSignatures(Iterable<String> signatures) {
+    _acceptedSignatures.addAll(signatures.where((s) => s.isNotEmpty));
+  }
+
+  /// Reserves [signature] for this handler instance if not already seen.
+  /// Returns false when the signature is already accepted/in-flight.
+  bool tryReserveSignature(String signature) {
+    if (signature.isEmpty) return false;
+    if (_acceptedSignatures.contains(signature) ||
+        _inFlightSignatures.contains(signature)) {
+      return false;
+    }
+    _inFlightSignatures.add(signature);
+    return true;
+  }
+
+  /// Promotes an in-flight signature to accepted once emit is successful.
+  void acceptReservedSignature(String signature) {
+    if (signature.isEmpty) return;
+    _inFlightSignatures.remove(signature);
+    _acceptedSignatures.add(signature);
+  }
+
+  /// Releases an in-flight reservation when image is discarded.
+  void releaseReservedSignature(String signature) {
+    if (signature.isEmpty) return;
+    _inFlightSignatures.remove(signature);
+  }
 }

@@ -18,7 +18,6 @@ import 'package:image_viewer/src/view/widgets/loading/background_loading_indicat
 
 part 'carousel_scope.dart';
 
-
 const _slotCount = 5;
 const _minColorsForShader = 4;
 const _fallbackPalette = [
@@ -78,10 +77,7 @@ class ImageViewerScreen extends StatelessWidget {
 }
 
 class _ImageViewerContent extends StatefulWidget {
-  const _ImageViewerContent({
-    required this.onThemeToggle,
-    this.onShareTap,
-  });
+  const _ImageViewerContent({required this.onThemeToggle, this.onShareTap});
 
   final VoidCallback onThemeToggle;
   final void Function(ImageModel?, {Uint8List? screenshotBytes})? onShareTap;
@@ -171,70 +167,71 @@ class _ImageViewerContentState extends State<_ImageViewerContent> {
             height: MediaQuery.sizeOf(context).height,
             width: MediaQuery.sizeOf(context).width,
             child: BlocConsumer<ImageViewerBloc, ImageViewerState>(
-          buildWhen: (prev, curr) {
-            return prev.visibleImages.length != curr.visibleImages.length ||
-                prev.selectedImage != curr.selectedImage ||
-                prev.errorType != curr.errorType;
-          },
-          listenWhen: (prev, curr) =>
-              prev.errorType != curr.errorType &&
-              curr.errorType != ViewerErrorType.none,
-          listener: (context, state) {
-            showCustomDialog(
-              context: context,
-              message: state.errorType.message,
-              onDismiss: () {
-                context.read<ImageViewerBloc>().add(const ErrorDismissed());
+              buildWhen: (prev, curr) {
+                return prev.visibleImages.length != curr.visibleImages.length ||
+                    prev.selectedImage != curr.selectedImage ||
+                    prev.errorType != curr.errorType;
               },
-              icon: const Icon(Icons.image_not_supported_outlined),
-            );
-          },
-          builder: (context, state) {
-            final isLoaded = state.visibleImages.isNotEmpty;
-            final isLoading = state.loadingType != ViewerLoadingType.none;
+              listenWhen: (prev, curr) =>
+                  prev.errorType != curr.errorType &&
+                  curr.errorType != ViewerErrorType.none,
+              listener: (context, state) {
+                showCustomDialog(
+                  context: context,
+                  message: state.errorType.message,
+                  onDismiss: () {
+                    context.read<ImageViewerBloc>().add(const ErrorDismissed());
+                  },
+                  icon: const Icon(Icons.image_not_supported_outlined),
+                );
+              },
+              builder: (context, state) {
+                final isLoaded = state.visibleImages.isNotEmpty;
+                final isLoading = state.loadingType != ViewerLoadingType.none;
 
-            if (isLoaded) {
-              _lastImages = state.visibleImages;
-              _lastSelectedImage = state.selectedImage;
-              final newSelected = state.selectedImage;
-              if (newSelected != null &&
-                  newSelected.uid != _displayImageForColor?.uid) {
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  _precacheThenUpdateDisplayImage(newSelected);
-                });
-              }
-            }
+                if (isLoaded) {
+                  _lastImages = state.visibleImages;
+                  _lastSelectedImage = state.selectedImage;
+                  final newSelected = state.selectedImage;
+                  if (newSelected != null &&
+                      newSelected.uid != _displayImageForColor?.uid) {
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      _precacheThenUpdateDisplayImage(newSelected);
+                    });
+                  }
+                }
 
-            final images = isLoaded
-                ? state.visibleImages
-                : (isLoading ? _lastImages : null);
-            final selectedImage = isLoaded
-                ? state.selectedImage
-                : _lastSelectedImage;
-            final canShowContent =
-                images != null &&
-                images.isNotEmpty &&
-                selectedImage != null &&
-                selectedImage.url.isNotEmpty;
+                final images = isLoaded
+                    ? state.visibleImages
+                    : (isLoading ? _lastImages : null);
+                final selectedImage = isLoaded
+                    ? state.selectedImage
+                    : _lastSelectedImage;
+                final canShowContent =
+                    images != null &&
+                    images.isNotEmpty &&
+                    selectedImage != null &&
+                    selectedImage.url.isNotEmpty;
 
-            return CarouselControllerScope(
-              images: images,
-              selectedImage: selectedImage,
-              displayImageForColor: _displayImageForColor ?? selectedImage,
-              canShowContent: canShowContent,
-              blendedColorsNotifier: _blendedColorsNotifier,
-              isLoaded: isLoaded,
-              onVisibleRatioChange: _onVisibleRatioChange,
-              onPageChange: _onPageChange,
-              expandedView: _expandedView,
-              onExpanded: (expanded) => _toggleExpandedView(expanded: expanded),
-              onThemeToggle: widget.onThemeToggle,
-              onNextPage: () =>
-                  context.read<ImageViewerBloc>().add(AnotherImageEvent()),
-              onShareTap: widget.onShareTap,
-            );
-          },
-        ),
+                return CarouselControllerScope(
+                  images: images,
+                  selectedImage: selectedImage,
+                  displayImageForColor: _displayImageForColor ?? selectedImage,
+                  canShowContent: canShowContent,
+                  blendedColorsNotifier: _blendedColorsNotifier,
+                  isLoaded: isLoaded,
+                  onVisibleRatioChange: _onVisibleRatioChange,
+                  onPageChange: _onPageChange,
+                  expandedView: _expandedView,
+                  onExpanded: (expanded) =>
+                      _toggleExpandedView(expanded: expanded),
+                  onThemeToggle: widget.onThemeToggle,
+                  onNextPage: () =>
+                      context.read<ImageViewerBloc>().add(AnotherImageEvent()),
+                  onShareTap: widget.onShareTap,
+                );
+              },
+            ),
           ),
           if (kDebugMode) _BlocStateOverlay(),
         ],
@@ -247,15 +244,13 @@ class _ImageViewerContentState extends State<_ImageViewerContent> {
 class _BlocStateOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return kDebugMode ? 
-    
-    IgnorePointer(
+    return IgnorePointer(
       child: BlocBuilder<ImageViewerBloc, ImageViewerState>(
         buildWhen: (prev, curr) => true,
         builder: (context, state) {
           return Material(
-            color: Colors.transparent, 
-           
+            color: Colors.transparent,
+
             child: Padding(
               padding: const EdgeInsets.all(12),
               child: DefaultTextStyle(
@@ -266,8 +261,7 @@ class _BlocStateOverlay extends StatelessWidget {
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.
-                  max,
+                  mainAxisSize: MainAxisSize.max,
                   children: [
                     Text('loading: ${state.loadingType.name}'),
                     Text('visible: ${state.visibleImages.length}'),
@@ -285,6 +279,6 @@ class _BlocStateOverlay extends StatelessWidget {
           );
         },
       ),
-    ): const SizedBox.shrink();
+    );
   }
 }

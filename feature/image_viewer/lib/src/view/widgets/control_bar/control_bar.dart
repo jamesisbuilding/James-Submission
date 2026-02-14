@@ -199,7 +199,8 @@ class _ControlBarState extends State<ControlBar>
                                 onAnotherTap: widget.onAnotherTap,
                                 onPlayTapped: widget.onPlayTapped,
                                 mode: widget.mode,
-                                displayImageForColor: widget.displayImageForColor,
+                                displayImageForColor:
+                                    widget.displayImageForColor,
                                 controlBarExpanded: _controlBarExpanded,
                                 carouselExpanded: widget.carouselExpanded,
                               ),
@@ -231,8 +232,9 @@ class _ControlBarState extends State<ControlBar>
 
   /// Distance from screen bottom to top of visible control bar.
   /// Expanded: _contentHeight. Collapsed: _collapsedVisiblePx.
-  double get _visibleTopFromBottom =>
-      _contentHeight > 0 ? _contentHeight - _slideOffsetPx : _collapsedVisiblePx;
+  double get _visibleTopFromBottom => _contentHeight > 0
+      ? _contentHeight - _slideOffsetPx
+      : _collapsedVisiblePx;
 
   @override
   Widget build(BuildContext context) {
@@ -271,7 +273,11 @@ class _ControlBarState extends State<ControlBar>
           Positioned(
             bottom: _visibleTopFromBottom + 8,
             right: 20,
-            child: const BackgroundLoadingIndicator(),
+            child: BackgroundLoadingIndicator(
+              visibleWhen: (state) =>
+                  state.loadingType == ViewerLoadingType.background &&
+                  state.visibleImages.isNotEmpty,
+            ),
           ),
         ],
       ),

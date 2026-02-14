@@ -12,22 +12,36 @@ extension ImageBlocHandlers on ImageViewerBloc {
     emit(state.copyWith(loadingType: event.loadingType));
 
     try {
-      final existingSignatures = {
+      seedAcceptedSignatures([
         ...state.visibleImages.map((e) => e.pixelSignature),
         ...state.fetchedImages.map((e) => e.pixelSignature),
+      ]);
+
+      final existingSignatures = {
+        ...state.visibleImages
+            .map((e) => e.pixelSignature)
+            .where((s) => s.isNotEmpty),
+        ...state.fetchedImages
+            .map((e) => e.pixelSignature)
+            .where((s) => s.isNotEmpty),
       };
 
       await for (final image in _imageRepository.runImageRetrieval(
         count: event.count,
         existingImages: [...state.visibleImages, ...state.fetchedImages],
       )) {
-        if (existingSignatures.contains(image.pixelSignature)) {
-          debugPrint(
-            '[Bloc] Skipping duplicate pixelSignature: ${image.pixelSignature}',
-          );
+        final sig = image.pixelSignature;
+        if (sig.isEmpty || existingSignatures.contains(sig)) {
+          if (sig.isNotEmpty) {
+            debugPrint('[Bloc] Skipping duplicate pixelSignature: $sig');
+          }
           continue;
         }
-        existingSignatures.add(image.pixelSignature);
+        if (!tryReserveSignature(sig)) {
+          debugPrint('[Bloc] Skipping reserved/accepted pixelSignature: $sig');
+          continue;
+        }
+        existingSignatures.add(sig);
 
         // CASE 1: Initial Start (No existing images)
         if (isFirstLoad && isFirstArrivalFromStream) {
@@ -54,6 +68,7 @@ extension ImageBlocHandlers on ImageViewerBloc {
           emit(state.copyWith(fetchedImages: [...state.fetchedImages, image]));
         }
 
+        acceptReservedSignature(sig);
         isFirstArrivalFromStream = false;
       }
 
@@ -90,6 +105,8 @@ extension ImageBlocHandlers on ImageViewerBloc {
           ),
         );
       }
+    } finally {
+      _inFlightSignatures.clear();
     }
   }
 
