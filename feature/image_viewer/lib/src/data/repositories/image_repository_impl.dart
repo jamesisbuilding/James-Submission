@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:image_analysis_service/image_analysis_service.dart';
 
@@ -8,6 +10,7 @@ import 'package:image_viewer/src/domain/repositories/image_repository.dart';
 const _maxRetriesPerSlot = 3;
 const _initialBackoffMs = 500;
 const _maxSequentialDuplicates = 3;
+const _requestTimeout = Duration(seconds: 10);
 
 class ImageRepositoryImpl implements ImageRepository {
   ImageRepositoryImpl({
@@ -24,51 +27,112 @@ class ImageRepositoryImpl implements ImageRepository {
     int count = 1,
     List<ImageModel> existingImages = const [],
   }) async* {
-    var collected = List<ImageModel>.from(existingImages);
-    var needed = count;
-    var backoffMs = _initialBackoffMs;
+    // Print all the incoming params at the start of the future
+    debugPrint(
+      '[ImageRepo] runImageRetrieval called with params: count=$count, existingImages.length=${existingImages.length}, '
+      'existingImages.uids=[${existingImages.map((e) => e.uid).join(', ')}]',
+    );
 
-    int _duplicatesFound = 0;
-    for (var round = 0; round <= _maxRetriesPerSlot && needed > 0; round++) {
-      final urls = await Future.wait<String>(
-        List.generate(needed, (_) => _remoteDatasource.getRandomImageUrl()),
+    var currentPool = List<ImageModel>.from(existingImages);
+    final Set<String> seen = existingImages
+        .map((e) => e.pixelSignature)
+        .toSet();
+
+    int remainingToFetch = count;
+    int backoffMs = _initialBackoffMs;
+    int sequentialDuplicates = 0;
+
+    for (
+      var round = 0;
+      round <= _maxRetriesPerSlot && remainingToFetch > 0;
+      round++
+    ) {
+      // Print state params each round for debugging
+      debugPrint(
+        '[ImageRepo] Round $round: remainingToFetch=$remainingToFetch, backoffMs=$backoffMs, sequentialDuplicates=$sequentialDuplicates, '
+        'currentPool.length=${currentPool.length}, seen.length=${seen.length}'
       );
 
-      var failures = 0;
-      for (final url in urls) {
-        if (collected.map((i) => i.url).contains(url)) {
-          debugPrint('[ImageRepo] IMAGE DUPLICATE ABORTING ANALYSIS');
-          _duplicatesFound += 1;
+      // Fetch URLs based on what's still missing
+      final rawUrls = await Future.wait<String>(
+        List.generate(
+          remainingToFetch,
+          (_) => _remoteDatasource.getRandomImageUrl(),
+        ),
+      );
+      debugPrint('[ImageRepo] Round $round: requested $remainingToFetch url(s), got rawUrls=$rawUrls');
 
-        
-          if (_duplicatesFound >= _maxSequentialDuplicates) {
-            throw NoMoreImagesException('Too many sequential duplicates');
+      // Dedupe: API can return the same URL multiple times in parallel requests
+      final urls = rawUrls.toSet().toList();
+      if (urls.length < rawUrls.length) {
+        debugPrint(
+          '[ImageRepo] Deduped ${rawUrls.length - urls.length} duplicate URL(s)',
+        );
+      }
+
+      for (final url in urls) {
+        // Sequential processing: currentPool must be updated after each
+        // success so the analysis service can detect duplicates within batch.
+        final Result<ImageModel> result = await _imageAnalysisService
+            .runImageAnalysisService(
+              imageURL: url,
+              existingImages: currentPool,
+            )
+            .timeout(_requestTimeout);
+
+        final ImageModel? model = switch (result) {
+          Success(:final value) => value,
+          Failure(:final message, :final type) => () {
+            if (type == FailureType.duplicate) {
+              sequentialDuplicates++;
+              if (sequentialDuplicates >= _maxSequentialDuplicates) {
+              
+                throw NoMoreImagesException(
+                  'Too many sequential duplicates '
+                  '${sequentialDuplicates}/$_maxSequentialDuplicates',
+                );
+              }
+            } else {
+              sequentialDuplicates = 0;
+            }
+            return null;
+          }(),
+        };
+
+        if (model != null) {
+          if (seen.contains(model.pixelSignature)) {
+            sequentialDuplicates++;
+            if (sequentialDuplicates >= _maxSequentialDuplicates) {
+              // Same: throw immediately, cancel remaining work
+              throw NoMoreImagesException(
+                'Too many sequential duplicates '
+                '${sequentialDuplicates}/$_maxSequentialDuplicates',
+              );
+            }
+            continue;
           }
 
-          failures++;
-          break;
+          sequentialDuplicates = 0;
+          seen.add(model.pixelSignature);
+          currentPool.add(model);
+          remainingToFetch--;
+          yield model;
+
+          if (remainingToFetch <= 0) break;
         }
-
-        final result = await _imageAnalysisService.runImageAnalysisService(
-          imageURL: url,
-          existingImages: collected,
-        );
-        result.when(
-          success: (model) => collected = [...collected, model],
-          failure: (_) => failures++,
-        );
-        if (result case Success(:final value)) yield value;
       }
-      needed = failures;
 
-      if (needed == 0) break;
+      if (remainingToFetch <= 0) break;
+
       if (round < _maxRetriesPerSlot) {
+        debugPrint('[ImageRepo] Retrying in ${backoffMs}ms');
         await Future.delayed(Duration(milliseconds: backoffMs));
         backoffMs *= 2;
       }
     }
 
-    if (collected.isEmpty) {
+    if (currentPool.length <= existingImages.length) {
+      debugPrint('[ImageRepo] All image analyses failed after retries');
       throw Exception('All image analyses failed after retries');
     }
   }

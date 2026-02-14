@@ -10,6 +10,7 @@ import 'package:image_viewer/src/bloc/image_viewer_state.dart';
 import 'package:image_viewer/src/view/widgets/control_bar/control_bar_main_button.dart';
 import 'package:image_viewer/src/view/widgets/control_bar/favourite_button.dart';
 import 'package:image_viewer/src/view/widgets/helper_widgets/measure_size.dart';
+import 'package:image_viewer/src/view/widgets/loading/background_loading_indicator.dart';
 import 'package:image_viewer/src/view/widgets/notch.dart';
 
 const _collapsedVisiblePx = 62.5; // 50 * 1.25 for 25% taller collapsed sheet
@@ -17,10 +18,11 @@ const _snapDuration = Duration(milliseconds: 250);
 
 class ControlBar extends StatefulWidget {
   final MainButtonMode mode;
-  final Function onAnotherTap;
+  final VoidCallback onAnotherTap;
   final Function(bool) onPlayTapped;
   final void Function(ImageModel?)? onShareTap;
   final Color? backgroundColor;
+  final ImageModel? displayImageForColor;
   final bool carouselExpanded;
 
   const ControlBar({
@@ -29,6 +31,7 @@ class ControlBar extends StatefulWidget {
     required this.mode,
     required this.onPlayTapped,
     required this.backgroundColor,
+    this.displayImageForColor,
     required this.carouselExpanded,
     this.onShareTap,
   });
@@ -196,6 +199,7 @@ class _ControlBarState extends State<ControlBar>
                                 onAnotherTap: widget.onAnotherTap,
                                 onPlayTapped: widget.onPlayTapped,
                                 mode: widget.mode,
+                                displayImageForColor: widget.displayImageForColor,
                                 controlBarExpanded: _controlBarExpanded,
                                 carouselExpanded: widget.carouselExpanded,
                               ),
@@ -225,36 +229,51 @@ class _ControlBarState extends State<ControlBar>
     );
   }
 
+  /// Distance from screen bottom to top of visible control bar.
+  /// Expanded: _contentHeight. Collapsed: _collapsedVisiblePx.
+  double get _visibleTopFromBottom =>
+      _contentHeight > 0 ? _contentHeight - _slideOffsetPx : _collapsedVisiblePx;
+
   @override
   Widget build(BuildContext context) {
     return Positioned(
       bottom: 0,
       left: 0,
       right: 0,
-      child: Container(
-        color: Colors.transparent,
-        child: RepaintBoundary(
-          child: MeasureSize(
-            onChange: (size) {
-              if (size != null && _contentHeight != size.height) {
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  if (mounted) {
-                    setState(() {
-                      _contentHeight = size.height;
-                      if (!_controlBarExpanded) {
-                        _slideOffsetPx = _collapseDistance;
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Container(
+            color: Colors.transparent,
+            child: RepaintBoundary(
+              child: MeasureSize(
+                onChange: (size) {
+                  if (size != null && _contentHeight != size.height) {
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (mounted) {
+                        setState(() {
+                          _contentHeight = size.height;
+                          if (!_controlBarExpanded) {
+                            _slideOffsetPx = _collapseDistance;
+                          }
+                        });
                       }
                     });
                   }
-                });
-              }
-            },
-            child: Transform.translate(
-              offset: Offset(0, _slideOffsetPx),
-              child: _buildSheetContent(context),
+                },
+                child: Transform.translate(
+                  offset: Offset(0, _slideOffsetPx),
+                  child: _buildSheetContent(context),
+                ),
+              ),
             ),
           ),
-        ),
+          Positioned(
+            bottom: _visibleTopFromBottom + 8,
+            right: 20,
+            child: const BackgroundLoadingIndicator(),
+          ),
+        ],
       ),
     );
   }

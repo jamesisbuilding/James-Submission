@@ -14,12 +14,14 @@ class ImageViewerSquare extends StatelessWidget {
     required this.networkPath,
     this.imageUid,
     this.lightestColor,
+    this.darkestColor,
   });
 
   final String localPath;
   final String networkPath;
   final String? imageUid;
   final Color? lightestColor;
+  final Color? darkestColor;
 
   @override
   Widget build(BuildContext context) {
@@ -27,6 +29,8 @@ class ImageViewerSquare extends StatelessWidget {
       context,
       Material(
         elevation: 10,
+        shadowColor: darkestColor ?? Theme.of(context).colorScheme.surface,
+
         borderRadius: BorderRadius.circular(12),
         color: Colors.transparent,
         child: Container(
@@ -82,7 +86,10 @@ class ImageViewerSquare extends StatelessWidget {
           child: Shimmer(
             color: lightestColor ?? Colors.yellow,
             duration: const Duration(seconds: 10),
-            colorOpacity: 0.5, enabled: isFavourite, child: child),
+            colorOpacity: 0.5,
+            enabled: isFavourite,
+            child: child,
+          ),
         );
       },
     );

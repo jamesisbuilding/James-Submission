@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 void showCustomDialog({
   required BuildContext context,
   required String message,
-  required Function onDismiss,
+  required VoidCallback onDismiss,
   required Widget icon,
 }) {
   WidgetsBinding.instance.addPostFrameCallback((_) {

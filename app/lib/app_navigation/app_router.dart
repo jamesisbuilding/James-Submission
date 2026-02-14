@@ -25,17 +25,24 @@ final GoRouter appRouter = GoRouter(
             return ImageViewerFlow(
               getIt: serviceLocator,
               onThemeToggle: onThemeToggle,
-              onShareTap: (image) {
+              onShareTap: (image, {screenshotBytes}) {
                 if (image != null) {
                   serviceLocator
                       .get<AbstractShareService>()
                       .shareImageWithDescription(
                         description: image.description,
                         title: image.title,
-                        imagePath: image.localPath.isNotEmpty
-                            ? image.localPath
+                        imagePath: screenshotBytes != null
+                            ? null
+                            : (image.localPath.isNotEmpty
+                                ? image.localPath
+                                : null),
+                        imageBytes: screenshotBytes != null
+                            ? screenshotBytes.toList()
+                            : image.byteList?.toList(),
+                        imageMimeType: screenshotBytes != null
+                            ? 'image/png'
                             : null,
-                        imageBytes: image.byteList?.toList(),
                       );
                 }
               },

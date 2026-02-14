@@ -5,60 +5,93 @@ extension ImageBlocHandlers on ImageViewerBloc {
     ImageViewerFetchRequested event,
     Emitter<ImageViewerState> emit,
   ) async {
-    final existingImages = state.visibleImages;
+    final bool isFirstLoad = state.visibleImages.isEmpty;
+    final bool isManual = event.loadingType == ViewerLoadingType.manual;
 
-    final isFirstLoad = existingImages.isEmpty;
+    // Track if this is the first image returning from THIS specific stream
+    bool isFirstArrivalFromStream = true;
+
+    emit(state.copyWith(loadingType: event.loadingType));
+
     try {
-      var allImages = List<ImageModel>.from(existingImages);
-      if (isFirstLoad) {
-        await for (final image in _imageRepository.runImageRetrieval(
-          count: event.count,
-          existingImages: existingImages,
-        )) {
-          allImages = [...allImages, image];
+      final existingSignatures = {
+        ...state.visibleImages.map((e) => e.pixelSignature),
+        ...state.fetchedImages.map((e) => e.pixelSignature),
+      };
 
+      await for (final image in _imageRepository.runImageRetrieval(
+        count: event.count,
+        existingImages: [...state.visibleImages, ...state.fetchedImages],
+      )) {
+        if (existingSignatures.contains(image.pixelSignature)) {
+          debugPrint(
+            '[Bloc] Skipping duplicate pixelSignature: ${image.pixelSignature}',
+          );
+          continue;
+        }
+        existingSignatures.add(image.pixelSignature);
+
+        // CASE 1: Initial Start (No existing images)
+        if (isFirstLoad && isFirstArrivalFromStream) {
           emit(
             state.copyWith(
-              loadingType: allImages.length != event.count
-                  ? ViewerLoadingType.background
-                  : ViewerLoadingType.none,
-              fetchedImages: allImages.sublist(1, allImages.length),
-              visibleImages: [allImages.first],
-              selectedImage: allImages.first,
+              visibleImages: [image],
+              selectedImage: image,
+              loadingType: ViewerLoadingType.background,
             ),
           );
-        }
-      } else {
-        emit(state.copyWith(loadingType: event.loadingType));
-        final newImages = await _imageRepository
-            .runImageRetrieval(
-              count: event.count,
-              existingImages: [...state.visibleImages, ...state.fetchedImages],
-            )
-            .toList();
-
-        if (_shouldAddFetchedAndNavigate(state, event, newImages)) {
-          _emitFetchedWithAddAndNavigate(emit, state, newImages);
+        } else if (isManual &&
+            _isOnLastPage(state) &&
+            isFirstArrivalFromStream) {
+          final updatedVisible = [...state.visibleImages, image];
+          emit(
+            state.copyWith(
+              visibleImages: updatedVisible,
+              selectedImage: image,
+              loadingType: ViewerLoadingType.none,
+            ),
+          );
+          _navigateCarousel(target: updatedVisible.length - 1);
         } else {
-          _emitFetchedOnly(emit, state, newImages);
+          emit(state.copyWith(fetchedImages: [...state.fetchedImages, image]));
         }
+
+        isFirstArrivalFromStream = false;
       }
+
+      // Final cleanup: Stream is finished
+      emit(state.copyWith(loadingType: ViewerLoadingType.none));
     } on NoMoreImagesException {
+      // Use current state: loadingType may have changed during the stream
+      // (e.g. first image arrival switched manual→background), so we only
+      // surface errors when the user is still actively waiting (manual).
+      final isManualAtCatch = state.loadingType == ViewerLoadingType.manual;
       emit(
         state.copyWith(
-          errorType: (event.loadingType == ViewerLoadingType.manual)
-              ? ViewerErrorType.noMoreImages
-              : null,
           loadingType: ViewerLoadingType.none,
+          errorType: isManualAtCatch ? ViewerErrorType.noMoreImages : null,
         ),
       );
-    } catch (e, _) {
-      emit(
-        state.copyWith(
-          errorType: ViewerErrorType.unableToFetchImage,
-          loadingType: ViewerLoadingType.none,
-        ),
-      );
+    } on TimeoutException {
+      final isManualAtCatch = state.loadingType == ViewerLoadingType.manual;
+      if (isManualAtCatch) {
+        emit(
+          state.copyWith(
+            errorType: ViewerErrorType.fetchTimeout,
+            loadingType: ViewerLoadingType.none,
+          ),
+        );
+      }
+    } catch (e) {
+      final isManualAtCatch = state.loadingType == ViewerLoadingType.manual;
+      if (isManualAtCatch) {
+        emit(
+          state.copyWith(
+            errorType: ViewerErrorType.unableToFetchImage,
+            loadingType: ViewerLoadingType.none,
+          ),
+        );
+      }
     }
   }
 
@@ -91,6 +124,27 @@ extension ImageBlocHandlers on ImageViewerBloc {
     }
   }
 
+  // --- Helper Methods ---
+
+  void _navigateCarousel({int? target}) {
+    final ctrl = state.carouselController;
+    if (ctrl != null && ctrl.hasClients) {
+      final targetPage = target ?? state.visibleImages.length - 1;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (ctrl.hasClients) {
+          ctrl.animateToPage(
+            targetPage,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOutCubic,
+          );
+        }
+      });
+    }
+  }
+
+  bool _isOnLastPage(ImageViewerState s) =>
+      s.visibleImages.isNotEmpty && s.selectedImage == s.visibleImages.last;
+
   void _onErrorDismissed(ErrorDismissed event, Emitter<ImageViewerState> emit) {
     emit(state.copyWith(errorType: ViewerErrorType.none));
   }
@@ -114,81 +168,5 @@ extension ImageBlocHandlers on ImageViewerBloc {
     Emitter<ImageViewerState> emit,
   ) {
     emit(state.copyWith(selectedImage: event.image));
-  }
-
-  void _onImageFavourited(
-    ImageFavourited event,
-    Emitter<ImageViewerState> emit,
-  ) {
-    final index = state.visibleImages.indexWhere(
-      (i) => i.uid == event.image.uid,
-    );
-    if (index < 0) return;
-    final toggled = event.image.copyWith(isFavourite: !event.image.isFavourite);
-    final newImages = [
-      ...state.visibleImages.sublist(0, index),
-      toggled,
-      ...state.visibleImages.sublist(index + 1),
-    ];
-
-    emit(state.copyWith(visibleImages: newImages));
-  }
-
-  void _navigateCarousel({int? target}) {
-    final ctrl = state.carouselController;
-    if (ctrl != null && ctrl.hasClients) {
-      final targetPage = target ?? state.visibleImages.length - 1;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (ctrl.hasClients) {
-          ctrl.animateToPage(
-            targetPage,
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeInOutCubic,
-          );
-        }
-      });
-    }
-  }
-
-  bool _isOnLastPage(ImageViewerState s) =>
-      s.visibleImages.isNotEmpty && s.selectedImage == s.visibleImages.last;
-
-  bool _shouldAddFetchedAndNavigate(
-    ImageViewerState s,
-    ImageViewerFetchRequested event,
-    List<ImageModel> newImages,
-  ) =>
-      event.loadingType == ViewerLoadingType.manual &&
-      _isOnLastPage(s) &&
-      newImages.isNotEmpty;
-
-  void _emitFetchedWithAddAndNavigate(
-    Emitter<ImageViewerState> emit,
-    ImageViewerState current,
-    List<ImageModel> newImages,
-  ) {
-    final newVisible = [...current.visibleImages, newImages.first];
-    emit(
-      current.copyWith(
-        visibleImages: newVisible,
-        fetchedImages: newImages.sublist(1),
-        selectedImage: newImages.first,
-        loadingType: ViewerLoadingType.none,
-      ),
-    );
-    _navigateCarousel(target: newVisible.length - 1);
-  }
-
-  void _emitFetchedOnly(
-    Emitter<ImageViewerState> emit,
-    ImageViewerState current,
-    List<ImageModel> newImages,
-  ) {
-    emit(
-      current.copyWith(
-        fetchedImages: newImages,
-        loadingType: ViewerLoadingType.none,
-      ),
-    );
   }
 }

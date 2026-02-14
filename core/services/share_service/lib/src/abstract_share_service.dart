@@ -10,5 +10,6 @@ abstract class AbstractShareService {
     String? title,
     String? imagePath,
     List<int>? imageBytes,
+    String? imageMimeType,
   });
 }

@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
@@ -23,7 +25,7 @@ class ImageViewerFlow extends StatefulWidget {
 
   final GetIt getIt;
   final VoidCallback onThemeToggle;
-  final void Function(ImageModel?)? onShareTap;
+  final void Function(ImageModel?, {Uint8List? screenshotBytes})? onShareTap;
 
   @override
   State<ImageViewerFlow> createState() => _ImageViewerFlowState();

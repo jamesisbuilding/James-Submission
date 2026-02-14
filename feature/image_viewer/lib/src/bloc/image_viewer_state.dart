@@ -11,7 +11,10 @@ enum ViewerErrorType {
   ),
   noMoreImages(
     message:
-        'Oops! It seems we\'re receiving a lot of duplicates now, so you may have gotten all the packages available!\nTry load some more or check out their descriptions.',
+        'Oops! It seems we\'re receiving a lot of duplicates now, so you may have gotten all the images available!\nTry load some more or check out their descriptions.',
+  ),
+  fetchTimeout(
+    message: 'Request timed out. Please check your connection and try again.',
   );
 
   const ViewerErrorType({required this.message});

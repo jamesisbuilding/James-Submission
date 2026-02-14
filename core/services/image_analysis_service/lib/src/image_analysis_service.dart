@@ -40,7 +40,7 @@ class ImageAnalysisService {
         (imageBytes, existingHashes),
       );
       if (hashResult.isDuplicate) {
-        return Failure('Duplicate image detected');
+        return Failure('Duplicate image detected', type: FailureType.duplicate);
       }
       final contentHash = hashResult.hash!;
 

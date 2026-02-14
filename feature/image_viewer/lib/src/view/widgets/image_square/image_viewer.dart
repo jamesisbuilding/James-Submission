@@ -8,6 +8,7 @@ import 'package:image_analysis_service/image_analysis_service.dart';
 import 'package:image_viewer/src/cubit/cubit.dart';
 import 'package:image_viewer/src/view/widgets/image_square/image_viewer_body.dart';
 import 'package:image_viewer/src/view/widgets/image_square/image_viewer_square.dart';
+import 'package:image_viewer/src/view/widgets/loading/background_loading_indicator.dart';
 
 class ImageViewer extends StatefulWidget {
   const ImageViewer({

@@ -11,33 +11,26 @@ enum MainButtonMode {
   final double height;
   final double width;
 
-  BorderRadius get borderRadius =>
-      this == MainButtonMode.audio
-          ? BorderRadius.circular(60)
-          : BorderRadius.circular(12);
+  BorderRadius get borderRadius => this == MainButtonMode.audio
+      ? BorderRadius.circular(60)
+      : BorderRadius.circular(12);
 }
 
 class MainButton extends StatefulWidget {
   final String label;
-  final Function onTap;
+  final VoidCallback onTap;
   final Function(bool)? onPlayTapped;
   final Color? backgroundColor;
   final Color? foregroundColor;
   final MainButtonMode mode;
 
-  /// Duration before the label appears (applies to [MainButtonMode.another]).
-  /// Null uses [DelayedDisplay] default.
   final Duration? delayDuration;
 
-  /// When non-null, controls the play/pause icon (controlled mode for TTS etc).
   final bool? isPlaying;
 
-  /// When true, shows a loading overlay over the audio button.
   final bool? isLoading;
 
-  /// Optional background image (e.g. selected image) at 0.3 opacity.
   final ImageProvider? backgroundImage;
-
 
   const MainButton({
     super.key,
@@ -64,12 +57,11 @@ class _MainButtonState extends State<MainButton> with AnimatedPressMixin {
 
   @override
   void onPressComplete() {
-    if(widget.isLoading == true){
-      return; 
+    if (widget.isLoading == true) {
+      return;
     }
     widget.mode == MainButtonMode.another ? widget.onTap() : _togglePlaying();
   }
-      
 
   void _togglePlaying() {
     if (widget.isLoading == true) return;
@@ -149,22 +141,20 @@ class _MainButtonState extends State<MainButton> with AnimatedPressMixin {
                   ),
                 )
               : widget.isLoading == true
-                        ? SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                foregroundColor.withValues(alpha: 0.8),
-                              ),
-                            ),
-                          )
-                        : Icon(
-                            !_displayPlaying
-                                ? Icons.play_arrow
-                                : Icons.pause_sharp,
-                            key: ValueKey('audio_${_displayPlaying}'),
-                          ),
+              ? SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      foregroundColor.withValues(alpha: 0.8),
+                    ),
+                  ),
+                )
+              : Icon(
+                  !_displayPlaying ? Icons.play_arrow : Icons.pause_sharp,
+                  key: ValueKey('audio_${_displayPlaying}'),
+                ),
         ),
       ),
     );

@@ -3,7 +3,7 @@
 Attached in my Coding Assessment for Aurora
 
 ### IMGO
-Introducing IMGO - the feed-based luxury travel app that combines in-app story telling with selecting your next excursion. Don't READ all about it, LISTEN to it first; explained by your AI travel assistant. Then save and share with friends and get your next adventure started!
+Introducing IMGO - the feed-based luxury travel-inspiration app that combines in-app story telling with selecting your next excursion. Don't READ all about it, LISTEN to it first; explained by your AI travel assistant. Then save and share with friends and get your next adventure started!
 
 Video Demo Link - https://drive.google.com/drive/folders/1iASAfGXv4h4pXNdNDrNEwNQArccPV5KO?usp=sharing
 

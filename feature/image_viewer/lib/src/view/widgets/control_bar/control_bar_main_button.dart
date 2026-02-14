@@ -1,6 +1,7 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:image_analysis_service/image_analysis_service.dart';
 import 'package:image_viewer/image_viewer.dart';
 import 'package:image_viewer/src/utils/image_provider_utils.dart';
 
@@ -10,11 +11,13 @@ class ControlBarMainButton extends StatefulWidget {
     required this.onAnotherTap,
     required this.mode,
     required this.onPlayTapped,
+    this.displayImageForColor,
     this.controlBarExpanded = false,
     required this.carouselExpanded,
   });
 
-  final Function onAnotherTap;
+  final VoidCallback onAnotherTap;
+  final ImageModel? displayImageForColor;
   final MainButtonMode mode;
   final Function(bool) onPlayTapped;
   final bool controlBarExpanded;
@@ -47,8 +50,9 @@ class _ControlBarMainButtonState extends State<ControlBarMainButton> {
           final isLightMode = Theme.of(context).brightness == Brightness.light;
           final theme = Theme.of(context);
 
-          final imageForColors =
-              state.selectedImage ?? state.visibleImages.lastOrNull;
+          final imageForColors = widget.displayImageForColor ??
+              state.selectedImage ??
+              state.visibleImages.lastOrNull;
           Color? bgColor;
           Color? fgColor;
           if (imageForColors != null) {

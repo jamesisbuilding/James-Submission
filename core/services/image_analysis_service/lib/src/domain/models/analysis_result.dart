@@ -1,3 +1,9 @@
+/// Reason for a [Failure].
+enum FailureType {
+  duplicate,
+  other,
+}
+
 /// Result type for operations that can succeed or fail.
 /// Treats empty values as failure.
 sealed class Result<T> {
@@ -34,6 +40,7 @@ final class Success<T> extends Result<T> {
 }
 
 final class Failure<T> extends Result<T> {
-  const Failure(this.message);
+  const Failure(this.message, {this.type = FailureType.other});
   final String message;
+  final FailureType type;
 }

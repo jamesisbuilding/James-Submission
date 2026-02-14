@@ -17,6 +17,7 @@
         "equatable",
         "flutter",
         "flutter_bloc",
+        "flutter_spinkit",
         "freezed_annotation",
         "get_it",
         "image_analysis_service",
@@ -109,6 +110,13 @@
         "stream_channel",
         "test_api",
         "vector_math"
+      ]
+    },
+    {
+      "name": "flutter_spinkit",
+      "version": "5.2.2",
+      "dependencies": [
+        "flutter"
       ]
     },
     {

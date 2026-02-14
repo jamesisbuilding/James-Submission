@@ -1,3 +1,5 @@
+import 'dart:async' show TimeoutException;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_analysis_service/image_analysis_service.dart';
@@ -16,7 +18,6 @@ class ImageViewerBloc extends Bloc<ImageViewerEvent, ImageViewerState> {
     on<ImageViewerFetchRequested>(_onFetchRequested);
     on<UpdateSelectedImage>(_updateSelectedImage);
     on<AnotherImageEvent>(_anotherImageEvent);
-    on<ImageFavourited>(_onImageFavourited);
     on<ErrorDismissed>(_onErrorDismissed);
     on<CarouselControllerRegistered>(_onCarouselControllerRegistered);
     on<CarouselControllerUnregistered>(_onCarouselControllerUnregistered);

@@ -17,12 +17,6 @@ final class UpdateSelectedImage extends ImageViewerEvent {
   const UpdateSelectedImage({required this.image});
 }
 
-final class ImageFavourited extends ImageViewerEvent {
-  final ImageModel image;
-  const ImageFavourited({required this.image});
-}
-
-
 final class AnotherImageEvent extends ImageViewerEvent {
   const AnotherImageEvent();
 }

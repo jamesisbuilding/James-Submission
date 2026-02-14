@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 class CustomIconButton extends StatefulWidget {
   final int delay;
-  final Function onTap;
+  final VoidCallback onTap;
   final Widget icon;
   const CustomIconButton({
     super.key,

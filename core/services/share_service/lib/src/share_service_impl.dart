@@ -17,6 +17,7 @@ class ShareServiceImpl implements AbstractShareService {
     String? title,
     String? imagePath,
     List<int>? imageBytes,
+    String? imageMimeType,
   }) async {
     final parts = <String>[];
     if (title != null && title.isNotEmpty) parts.add(title);
@@ -30,10 +31,12 @@ class ShareServiceImpl implements AbstractShareService {
         await File(imagePath).exists()) {
       file = XFile(imagePath);
     } else if (imageBytes != null && imageBytes.isNotEmpty) {
+      final mimeType = imageMimeType ?? 'image/jpeg';
+      final ext = mimeType == 'image/png' ? 'png' : 'jpg';
       file = XFile.fromData(
         Uint8List.fromList(imageBytes),
-        name: 'imgo_share.jpg',
-        mimeType: 'image/jpeg',
+        name: 'imgo_share.$ext',
+        mimeType: mimeType,
       );
     }
 

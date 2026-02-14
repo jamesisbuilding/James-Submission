@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$ImageModel {
 
- String get uid; String get title; String get description; bool get isFavourite; String get url; List<Color> get colorPalette; String get localPath; Uint8List? get byteList; String? get pixelSignature;
+ String get uid; String get title; String get description; bool get isFavourite; String get url; List<Color> get colorPalette; String get localPath; Uint8List? get byteList; String get pixelSignature;
 /// Create a copy of ImageModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -45,7 +45,7 @@ abstract mixin class $ImageModelCopyWith<$Res>  {
   factory $ImageModelCopyWith(ImageModel value, $Res Function(ImageModel) _then) = _$ImageModelCopyWithImpl;
 @useResult
 $Res call({
- String uid, String title, String description, bool isFavourite, String url, List<Color> colorPalette, String localPath, Uint8List? byteList, String? pixelSignature
+ String uid, String title, String description, bool isFavourite, String url, List<Color> colorPalette, String localPath, Uint8List? byteList, String pixelSignature
 });
 
 
@@ -62,7 +62,7 @@ class _$ImageModelCopyWithImpl<$Res>
 
 /// Create a copy of ImageModel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? uid = null,Object? title = null,Object? description = null,Object? isFavourite = null,Object? url = null,Object? colorPalette = null,Object? localPath = null,Object? byteList = freezed,Object? pixelSignature = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? uid = null,Object? title = null,Object? description = null,Object? isFavourite = null,Object? url = null,Object? colorPalette = null,Object? localPath = null,Object? byteList = freezed,Object? pixelSignature = null,}) {
   return _then(_self.copyWith(
 uid: null == uid ? _self.uid : uid // ignore: cast_nullable_to_non_nullable
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
@@ -72,8 +72,8 @@ as bool,url: null == url ? _self.url : url // ignore: cast_nullable_to_non_nulla
 as String,colorPalette: null == colorPalette ? _self.colorPalette : colorPalette // ignore: cast_nullable_to_non_nullable
 as List<Color>,localPath: null == localPath ? _self.localPath : localPath // ignore: cast_nullable_to_non_nullable
 as String,byteList: freezed == byteList ? _self.byteList : byteList // ignore: cast_nullable_to_non_nullable
-as Uint8List?,pixelSignature: freezed == pixelSignature ? _self.pixelSignature : pixelSignature // ignore: cast_nullable_to_non_nullable
-as String?,
+as Uint8List?,pixelSignature: null == pixelSignature ? _self.pixelSignature : pixelSignature // ignore: cast_nullable_to_non_nullable
+as String,
   ));
 }
 
@@ -158,7 +158,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String uid,  String title,  String description,  bool isFavourite,  String url,  List<Color> colorPalette,  String localPath,  Uint8List? byteList,  String? pixelSignature)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String uid,  String title,  String description,  bool isFavourite,  String url,  List<Color> colorPalette,  String localPath,  Uint8List? byteList,  String pixelSignature)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ImageModel() when $default != null:
 return $default(_that.uid,_that.title,_that.description,_that.isFavourite,_that.url,_that.colorPalette,_that.localPath,_that.byteList,_that.pixelSignature);case _:
@@ -179,7 +179,7 @@ return $default(_that.uid,_that.title,_that.description,_that.isFavourite,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String uid,  String title,  String description,  bool isFavourite,  String url,  List<Color> colorPalette,  String localPath,  Uint8List? byteList,  String? pixelSignature)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String uid,  String title,  String description,  bool isFavourite,  String url,  List<Color> colorPalette,  String localPath,  Uint8List? byteList,  String pixelSignature)  $default,) {final _that = this;
 switch (_that) {
 case _ImageModel():
 return $default(_that.uid,_that.title,_that.description,_that.isFavourite,_that.url,_that.colorPalette,_that.localPath,_that.byteList,_that.pixelSignature);case _:
@@ -199,7 +199,7 @@ return $default(_that.uid,_that.title,_that.description,_that.isFavourite,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String uid,  String title,  String description,  bool isFavourite,  String url,  List<Color> colorPalette,  String localPath,  Uint8List? byteList,  String? pixelSignature)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String uid,  String title,  String description,  bool isFavourite,  String url,  List<Color> colorPalette,  String localPath,  Uint8List? byteList,  String pixelSignature)?  $default,) {final _that = this;
 switch (_that) {
 case _ImageModel() when $default != null:
 return $default(_that.uid,_that.title,_that.description,_that.isFavourite,_that.url,_that.colorPalette,_that.localPath,_that.byteList,_that.pixelSignature);case _:
@@ -214,7 +214,7 @@ return $default(_that.uid,_that.title,_that.description,_that.isFavourite,_that.
 
 
 class _ImageModel extends ImageModel {
-  const _ImageModel({required this.uid, required this.title, required this.description, required this.isFavourite, required this.url, required final  List<Color> colorPalette, required this.localPath, this.byteList, this.pixelSignature}): _colorPalette = colorPalette,super._();
+  const _ImageModel({required this.uid, required this.title, required this.description, required this.isFavourite, required this.url, required final  List<Color> colorPalette, required this.localPath, this.byteList, required this.pixelSignature}): _colorPalette = colorPalette,super._();
   
 
 @override final  String uid;
@@ -231,7 +231,7 @@ class _ImageModel extends ImageModel {
 
 @override final  String localPath;
 @override final  Uint8List? byteList;
-@override final  String? pixelSignature;
+@override final  String pixelSignature;
 
 /// Create a copy of ImageModel
 /// with the given fields replaced by the non-null parameter values.
@@ -263,7 +263,7 @@ abstract mixin class _$ImageModelCopyWith<$Res> implements $ImageModelCopyWith<$
   factory _$ImageModelCopyWith(_ImageModel value, $Res Function(_ImageModel) _then) = __$ImageModelCopyWithImpl;
 @override @useResult
 $Res call({
- String uid, String title, String description, bool isFavourite, String url, List<Color> colorPalette, String localPath, Uint8List? byteList, String? pixelSignature
+ String uid, String title, String description, bool isFavourite, String url, List<Color> colorPalette, String localPath, Uint8List? byteList, String pixelSignature
 });
 
 
@@ -280,7 +280,7 @@ class __$ImageModelCopyWithImpl<$Res>
 
 /// Create a copy of ImageModel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? uid = null,Object? title = null,Object? description = null,Object? isFavourite = null,Object? url = null,Object? colorPalette = null,Object? localPath = null,Object? byteList = freezed,Object? pixelSignature = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? uid = null,Object? title = null,Object? description = null,Object? isFavourite = null,Object? url = null,Object? colorPalette = null,Object? localPath = null,Object? byteList = freezed,Object? pixelSignature = null,}) {
   return _then(_ImageModel(
 uid: null == uid ? _self.uid : uid // ignore: cast_nullable_to_non_nullable
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
@@ -290,8 +290,8 @@ as bool,url: null == url ? _self.url : url // ignore: cast_nullable_to_non_nulla
 as String,colorPalette: null == colorPalette ? _self._colorPalette : colorPalette // ignore: cast_nullable_to_non_nullable
 as List<Color>,localPath: null == localPath ? _self.localPath : localPath // ignore: cast_nullable_to_non_nullable
 as String,byteList: freezed == byteList ? _self.byteList : byteList // ignore: cast_nullable_to_non_nullable
-as Uint8List?,pixelSignature: freezed == pixelSignature ? _self.pixelSignature : pixelSignature // ignore: cast_nullable_to_non_nullable
-as String?,
+as Uint8List?,pixelSignature: null == pixelSignature ? _self.pixelSignature : pixelSignature // ignore: cast_nullable_to_non_nullable
+as String,
   ));
 }
 

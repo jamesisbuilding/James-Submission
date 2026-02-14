@@ -18,7 +18,7 @@ abstract class ImageModel with _$ImageModel {
     required List<Color> colorPalette,
     required String localPath,
     Uint8List? byteList,
-    String? pixelSignature,
+    required String pixelSignature,
   }) = _ImageModel;
 
   /// Contrast ratio threshold (WCAG AAA). Minimum 7:1 for accessibility.
@@ -72,6 +72,6 @@ abstract class ImageModel with _$ImageModel {
         colorPalette: const [],
         localPath: '',
         byteList: null,
-        pixelSignature: null,
+        pixelSignature: '',
       );
 }
