@@ -5,9 +5,15 @@ import 'package:image_analysis_service/image_analysis_service.dart';
 import 'package:image_viewer/image_viewer.dart';
 
 class FavouriteStarButton extends StatelessWidget {
-  const FavouriteStarButton({this.selectedImage});
+  const FavouriteStarButton({
+    this.selectedImage,
+    this.debugBuildCount,
+  });
 
   final ImageModel? selectedImage;
+
+  /// When non-null (tests only), incremented each time the builder runs.
+  final ValueNotifier<int>? debugBuildCount;
 
   @override
   Widget build(BuildContext context) {
@@ -17,6 +23,7 @@ class FavouriteStarButton extends StatelessWidget {
     return BlocBuilder<FavouritesCubit, Set<String>>(
       buildWhen: (prev, curr) => prev.contains(uid) != curr.contains(uid),
       builder: (context, favourites) {
+        debugBuildCount?.value = (debugBuildCount?.value ?? 0) + 1;
         final isFavourite = uid.isNotEmpty && favourites.contains(uid);
         return CustomIconButton(
           onTap: () {

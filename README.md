@@ -165,10 +165,10 @@ The view layer has been refactored: the background loading indicator is integrat
 Eleven Labs (TTS) and LLM (ChatGPT/Gemini) could be made more robust – retries, fallbacks, clearer error handling and user feedback when those services fail. 
 
 ### Recommended next hardening steps
-1. Add automated tests:
-   - unit tests for bloc/cubit transitions and repository retry/duplicate logic,
+1. Extend automated tests:
+   - ✅ unit tests for ImageViewerBloc fetch + duplicate + error paths (see [Testing](#testing)),
    - widget tests for critical controls and expanded card behaviour,
-   - integration test for video -> viewer transition + initial fetch.
+   - integration test for video → viewer transition + initial fetch.
 2. Introduce environment-driven pipeline selection (ChatGPT vs Gemini) instead of code-level toggle.
 3. Add structured logging/telemetry and production log-level controls.
 4. Consider an explicit repository/result error model to remove generic thrown exceptions.
@@ -180,7 +180,134 @@ Eleven Labs (TTS) and LLM (ChatGPT/Gemini) could be made more robust – retries
 
 - Current optimization target is iPhone-class form factors; broader device matrix testing is still needed.
 - External provider limits/latency (image API, OpenAI/Gemini, ElevenLabs) can impact perceived responsiveness.
-- Test coverage is currently minimal in the repository.
+- ImageViewerBloc has unit test coverage; widget/integration coverage is minimal.
+
+---
+
+## Testing
+
+**Test coverage summary** (25 tests in `feature/image_viewer`)
+
+| Suite | Tests | Path |
+|-------|-------|------|
+| ImageViewerBloc | 13 | `test/bloc/image_viewer_bloc_test.dart` |
+| ImageRepositoryImpl | 5 | `test/data/repositories/image_repository_impl_test.dart` |
+| TtsCubit | 4 | `test/cubit/tts_cubit_test.dart` |
+| FavouriteStarButton | 3 | `test/view/widgets/control_bar/favourite_star_button_test.dart` |
+
+### ImageViewerBloc unit tests
+
+The `feature/image_viewer` package includes unit tests for fetch logic, duplicate handling, and error surfacing. Run from the image_viewer package:
+
+```bash
+cd feature/image_viewer
+flutter test test/bloc/image_viewer_bloc_test.dart
+```
+
+**Coverage (13 tests)**
+
+*Fetch + duplicate guard:*
+| Test | Covers |
+|------|--------|
+| first load sets visibleImages + selectedImage correctly | Initial fetch, first image path |
+| manual fetch while on last page appends and navigates path | Manual fetch on last page, append + select |
+| duplicate signatures are skipped via reservation guard | Duplicate handling via `tryReserveSignature` |
+| NoMoreImagesException only shows manual-mode errors | Manual-only error surfacing |
+| NoMoreImagesException during background fetch does NOT show error | Background fetch silently ignores |
+| TimeoutException only shows manual-mode errors | Manual-only error surfacing |
+| TimeoutException during background fetch does NOT show error | Background fetch silently ignores |
+| background fetch completion resets loading to none | Loading state reset on stream complete |
+
+*Fetch trigger behavior (manual, scrolling, Another button):*
+| Test | Covers |
+|------|--------|
+| AnotherImageEvent with exactly 1 prefetched: consumes and triggers background fetch | Prefetch when queue drops to 1 after consume |
+| AnotherImageEvent with 2+ prefetched: consumes first, no fetch when 2+ remain | No redundant fetch while well-stocked |
+| AnotherImageEvent with no prefetched and loading none: triggers manual fetch | Manual fetch when user taps Another with empty queue |
+| AnotherImageEvent with no prefetched and loading background: switches to manual, no new fetch | User waiting – switch to manual, no duplicate request |
+| ImageViewerFetchRequested with default params triggers background prefetch | Scroll-to-page (length-2) prefetch path |
+
+**Fetch triggers (where `ImageViewerFetchRequested` is dispatched):**
+
+| Trigger | Location | Type | When |
+|---------|----------|------|------|
+| Initial load | `ImageViewerFlow` | Background (count 3) | On flow mount |
+| Scroll prefetch near end | `_onPageChange` (image_viewer_main_view) | Background (count 3) | When `page == images.length - 2` and `loadingType == none` |
+| Another (has prefetched) | `AnotherImageEvent` via `onNextPage` | Background (count 3) | When consuming last prefetched (length was 1) |
+| Another (no prefetched) | `AnotherImageEvent` | Manual (count 3) | When `loadingType == none` |
+| Another (no prefetched, already loading) | `AnotherImageEvent` | Switch to manual | When `loadingType == background` – no new request |
+
+Uses `mocktail` to mock `ImageRepository`; no `bloc_test` (dependency conflicts with `flutter_bloc 9`).
+
+### ImageRepositoryImpl unit tests
+
+Repository dedupe, retry, and duplicate-exhaustion logic are tested with fake datasource and fake analysis service:
+
+```bash
+cd feature/image_viewer
+flutter test test/data/repositories/image_repository_impl_test.dart
+```
+
+**Coverage (5 tests)**
+
+| Test | Covers |
+|------|--------|
+| URL dedupe (rawUrls.toSet()) works | Duplicate URLs from parallel fetches are deduped before analysis |
+| duplicate result increments sequential duplicate counter and throws at threshold | `FailureType.duplicate` → `NoMoreImagesException` at 3 sequential |
+| non-duplicate results decrement remainingToFetch and stream yields expected count | Success path, stream yields exactly `count` images |
+| backoff retries stop once target count is reached | No extra rounds once target met |
+| throws when all attempts fail | Generic `Exception` after all retries exhausted |
+
+Uses `FakeImageRemoteDatasource` and `FakeImageAnalysisService` (no mocks).
+
+### TtsCubit unit tests
+
+TTS playback state transitions and stream subscription behavior:
+
+```bash
+cd feature/image_viewer
+flutter test test/cubit/tts_cubit_test.dart
+```
+
+**Coverage (4 tests)**
+
+| Test | Covers |
+|------|--------|
+| play() emits loading -> playing | State transition on successful play |
+| onPlaybackComplete clears isPlaying/currentWord | Callback clears playback state and word highlight |
+| stop() always clears state | Cancel + clear regardless of current state |
+| exception in TTS service resets state and rethrows | Catch block clears state, rethrows to caller |
+
+Uses `FakeTtsService` with controllable completion and error behavior.
+
+### FavouriteStarButton widget tests
+
+Favourites star rebuild behavior (selective `buildWhen`):
+
+```bash
+cd feature/image_viewer
+flutter test test/view/widgets/control_bar/favourite_star_button_test.dart
+```
+
+**Coverage (3 tests)**
+
+| Test | Covers |
+|------|--------|
+| tapping star toggles state | Add/remove UID from FavouritesCubit |
+| icon color changes for selected UID when favourited | State drives visual (yellow vs onSurface) |
+| unrelated UID toggle does not rebuild target star | `buildWhen` prevents rebuild when other UIDs change |
+
+Uses `debugBuildCount` on `FavouriteStarButton` to instrument rebuilds.
+
+### Run all tests
+
+```bash
+# from app/
+flutter test
+
+# image_viewer package only
+cd feature/image_viewer && flutter test
+```
 
 ---
 

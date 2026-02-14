@@ -15,17 +15,28 @@ const _fadeDuration = Duration(milliseconds: 600);
 /// Orchestrates the image viewer flow: intro video first, then image viewer.
 /// Image viewer preloads in the background whilst the video plays.
 /// Creates and provides its own blocs via [getIt]; app has no knowledge of them.
+/// [overlayBuilder] allows tests to inject a controllable overlay; when null, uses [VideoView].
 class ImageViewerFlow extends StatefulWidget {
   const ImageViewerFlow({
     super.key,
     required this.getIt,
     required this.onThemeToggle,
     this.onShareTap,
+    this.overlayBuilder,
+    this.bottomLayer,
   });
 
   final GetIt getIt;
   final VoidCallback onThemeToggle;
   final void Function(ImageModel?, {Uint8List? screenshotBytes})? onShareTap;
+
+  /// Optional. When provided, used instead of [VideoView] for the overlay.
+  /// Receives [onVideoComplete] to trigger the fade-out transition.
+  final Widget Function(VoidCallback onVideoComplete)? overlayBuilder;
+
+  /// Optional. When provided, used instead of [ImageViewerScreen] for the bottom layer.
+  /// Allows tests to avoid heavy dependencies (shaders, network, etc.).
+  final Widget? bottomLayer;
 
   @override
   State<ImageViewerFlow> createState() => _ImageViewerFlowState();
@@ -56,10 +67,11 @@ class _ImageViewerFlowState extends State<ImageViewerFlow> {
         children: [
           // Bottom layer: image viewer preloads whilst video plays
           Positioned.fill(
-            child: ImageViewerScreen(
-              onThemeToggle: widget.onThemeToggle,
-              onShareTap: widget.onShareTap,
-            ),
+            child: widget.bottomLayer ??
+                ImageViewerScreen(
+                  onThemeToggle: widget.onThemeToggle,
+                  onShareTap: widget.onShareTap,
+                ),
           ),
           Transform.scale(
             scale: 1.15,
@@ -73,7 +85,9 @@ class _ImageViewerFlowState extends State<ImageViewerFlow> {
                   child: ColoredBox(
                     color: Colors.black,
                     child: Center(
-                      child: VideoView(onVideoComplete: _onVideoComplete),
+                      child: widget.overlayBuilder != null
+                          ? widget.overlayBuilder!(_onVideoComplete)
+                          : VideoView(onVideoComplete: _onVideoComplete),
                     ),
                   ),
                 ),
