@@ -9,6 +9,16 @@ IMGO is a feed-based, luxury-travel inspiration app with:
 - favourites + share,
 - dynamic colour-driven UI.
 
+> **Best experienced on a physical device in `--profile` mode:**  
+This app uses haptic feedback, which is only available on real devices (not emulators/simulators). Running in `--profile` ensures Ahead-of-Time (AOT) compilation, leading to smoother animations and reduced jank. For the intended experience, use:
+
+```
+flutter run --profile
+```
+
+on a real device.
+
+
 ## Demo
 - Video demos: https://drive.google.com/drive/folders/1iASAfGXv4h4pXNdNDrNEwNQArccPV5KO?usp=sharing
 - Recommended clip to review: **audio and text highlighting**.
@@ -111,11 +121,14 @@ The app is best optimized for iPhone 17 Pro. Although it should run on other dev
 13. Expandable image cards – tap an image to expand and see the full title and description, with the play button for TTS
 14. Accessibility – interfaces with Eleven Labs API to read out the short story/description of the image and have highlighted text on each word. 
 15. Favourite and Share – users can favourite and share images. Share has two modes: collapsed shares the raw image and description; expanded mode captures a screenshot of the carousel (excluding the control bar)
-16. Dynamic 'Another' button – changes colour based on the image's color palette, ensuring at least 7 contrast levels for accessibility and holds next up image or selected image as a faint background. 
+16. **Control bar main button** – dynamic button with multiple states:
+    - **Background image:** shows the next image (from prefetched queue) if available; if none are fetched, shows the current/selected image; when carousel is expanded, shows the current image as a faint background. Colours driven by the image palette.
+    - **Loading state:** shows a spinner when manually fetching ("Another" tapped with no prefetched images) or when loading audio.
+    - **Audio mode:** when the carousel is expanded, the button switches to play/pause for TTS (replacing the "Another" label).
+    - Contrast ratio threshold (WCAG AAA). Minimum 7:1 for accessibility.
 17. Light and Dark mode – toggle via the button at the top right
-18. Control bar – collapsible and updates to changes in selected image colors. Background loading indicator sits 8px above the right edge of the control bar and moves with expand/collapse
-19. Main button – dynamic and changes depending on whether we're in image view, loading view or expanded (play/pause for TTS) Contrast ratio threshold (WCAG AAA). Minimum 7:1 for accessibility.
-20. Error dialogs – we surface fetch failures and duplicate exhaustion so the user knows what's going on
+18. Control bar – collapsible and updates to changes in selected image colors. Background loading indicator sits 8px above the right edge of the control bar and moves with expand/collapse. Hidden/collapsed until the first image arrives, then reveals and pops up to expanded.
+19. Error dialogs – we surface fetch failures and duplicate exhaustion so the user knows what's going on
 
 
 ### Architecture

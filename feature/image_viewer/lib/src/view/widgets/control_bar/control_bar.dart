@@ -45,6 +45,7 @@ class _ControlBarState extends State<ControlBar>
   double _slideOffsetPx = 0;
   double _contentHeight = 0;
   bool _controlBarExpanded = true;
+  bool _hasReceivedFirstImage = false;
   late AnimationController _snapController;
   late Animation<double> _snapAnimation;
 
@@ -68,6 +69,20 @@ class _ControlBarState extends State<ControlBar>
     _snapAnimation = Tween<double>(begin: 0, end: 0).animate(
       CurvedAnimation(parent: _snapController, curve: Curves.easeOutCubic),
     );
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_hasReceivedFirstImage) {
+      final hasImages =
+          context.read<ImageViewerBloc>().state.visibleImages.isNotEmpty;
+      if (hasImages) {
+        _hasReceivedFirstImage = true;
+        _controlBarExpanded = true;
+        _slideOffsetPx = 0;
+      }
+    }
   }
 
   @override
@@ -113,6 +128,25 @@ class _ControlBarState extends State<ControlBar>
     if (_snapController.isCompleted) {
       _snapController.removeListener(_onSnapTick);
     }
+  }
+
+  void _revealAndExpand() {
+    if (!mounted || _collapseDistance <= 0) return;
+    setState(() {
+      _hasReceivedFirstImage = true;
+      _controlBarExpanded = true;
+    });
+    _snapAnimation = Tween<double>(
+      begin: _slideOffsetPx,
+      end: 0.0,
+    ).animate(
+      CurvedAnimation(
+        parent: _snapController,
+        curve: Curves.easeOutBack,
+      ),
+    );
+    _snapController.forward(from: 0);
+    _snapController.addListener(_onSnapTick);
   }
 
   Widget _buildSheetContent(BuildContext context) {
@@ -238,14 +272,23 @@ class _ControlBarState extends State<ControlBar>
 
   @override
   Widget build(BuildContext context) {
-    return Positioned(
-      bottom: 0,
-      left: 0,
-      right: 0,
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Container(
+    return BlocListener<ImageViewerBloc, ImageViewerState>(
+      listenWhen: (prev, curr) =>
+          prev.visibleImages.isEmpty && curr.visibleImages.isNotEmpty,
+      listener: (context, state) => _revealAndExpand(),
+      child: Positioned(
+        bottom: 0,
+        left: 0,
+        right: 0,
+        child: AnimatedOpacity(
+          duration: const Duration(milliseconds: 400),
+          opacity: _hasReceivedFirstImage ? 1 : 0,
+          child: IgnorePointer(
+            ignoring: !_hasReceivedFirstImage,
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Container(
             color: Colors.transparent,
             child: RepaintBoundary(
               child: MeasureSize(
@@ -255,7 +298,10 @@ class _ControlBarState extends State<ControlBar>
                       if (mounted) {
                         setState(() {
                           _contentHeight = size.height;
-                          if (!_controlBarExpanded) {
+                          if (!_hasReceivedFirstImage) {
+                            _slideOffsetPx = _collapseDistance;
+                            _controlBarExpanded = false;
+                          } else if (!_controlBarExpanded) {
                             _slideOffsetPx = _collapseDistance;
                           }
                         });
@@ -280,6 +326,9 @@ class _ControlBarState extends State<ControlBar>
             ),
           ),
         ],
+      ),
+          ),
+        ),
       ),
     );
   }

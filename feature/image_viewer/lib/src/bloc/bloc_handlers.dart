@@ -112,6 +112,14 @@ extension ImageBlocHandlers on ImageViewerBloc {
 
   void _anotherImageEvent(event, emit) {
     if (state.fetchedImages.isNotEmpty) {
+      if (state.fetchedImages.length == 1) {
+        add(
+          const ImageViewerFetchRequested(
+            count: 3,
+            loadingType: ViewerLoadingType.background,
+          ),
+        );
+      }
       List<ImageModel> currentlyVisible = List.from(state.visibleImages);
       currentlyVisible.add(state.fetchedImages.first);
       List<ImageModel> fetchedImages = List.from(state.fetchedImages);
