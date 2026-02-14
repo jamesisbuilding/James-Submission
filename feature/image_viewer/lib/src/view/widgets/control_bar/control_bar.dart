@@ -316,6 +316,7 @@ class _ControlBarState extends State<ControlBar>
               ),
             ),
           ),
+          if(!widget.carouselExpanded)
           Positioned(
             bottom: _visibleTopFromBottom + 8,
             right: 20,

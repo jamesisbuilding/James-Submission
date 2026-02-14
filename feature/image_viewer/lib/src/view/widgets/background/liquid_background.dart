@@ -86,6 +86,7 @@ List<Color> _lerpColors(List<Color> from, List<Color> to, double t) {
 class _LiquidBackgroundState extends State<LiquidBackground>
     with TickerProviderStateMixin {
   FragmentShader? _shader;
+  bool _shaderLoadFailed = false;
   late AnimationController _timeController;
   late AnimationController _colorTransitionController;
   List<Color> _displayedColors = const [];
@@ -143,9 +144,13 @@ class _LiquidBackgroundState extends State<LiquidBackground>
   }
 
   Future<void> _loadShader() async {
-    const assetKey = 'packages/image_viewer/shaders/gradient.frag';
-    final program = await FragmentProgram.fromAsset(assetKey);
-    if (mounted) setState(() => _shader = program.fragmentShader());
+    try {
+      const assetKey = 'packages/image_viewer/shaders/gradient.frag';
+      final program = await FragmentProgram.fromAsset(assetKey);
+      if (mounted) setState(() => _shader = program.fragmentShader());
+    } catch (_) {
+      if (mounted) setState(() => _shaderLoadFailed = true);
+    }
   }
 
   @override
@@ -169,13 +174,25 @@ class _LiquidBackgroundState extends State<LiquidBackground>
 
   @override
   Widget build(BuildContext context) {
-    if (_shader == null) return const SizedBox.expand();
-
     final colors = widget.colorsListenable != null
         ? _displayedColors
         : _padColors(widget.colors ?? const []);
 
+    if (_shader == null) {
+      if (_shaderLoadFailed) {
+        return _buildFallbackGradient(colors);
+      }
+      return const SizedBox.expand();
+    }
+
     return _buildPainter(colors);
+  }
+
+  Widget _buildFallbackGradient(List<Color> colors) {
+    return CustomPaint(
+      size: Size.infinite,
+      painter: _FallbackGradientPainter(colors: _padColors(colors)),
+    );
   }
 
   Widget _buildPainter(List<Color> colors) {
@@ -196,4 +213,31 @@ class _LiquidBackgroundState extends State<LiquidBackground>
       },
     );
   }
+}
+
+/// Fallback when shader fails to load (e.g. in tests). Renders a gradient.
+class _FallbackGradientPainter extends CustomPainter {
+  _FallbackGradientPainter({required this.colors});
+
+  final List<Color> colors;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = Offset.zero & size;
+    final gradient = LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: colors.length >= 4
+          ? [colors[0], colors[1], colors[2], colors[3]]
+          : colors,
+    );
+    canvas.drawRect(
+      rect,
+      Paint()..shader = gradient.createShader(rect),
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _FallbackGradientPainter old) =>
+      old.colors != colors;
 }

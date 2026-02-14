@@ -1,14 +1,12 @@
-import 'dart:ui';
-
 import 'package:delayed_display/delayed_display.dart';
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_analysis_service/image_analysis_service.dart';
 import 'package:image_viewer/src/cubit/cubit.dart';
+import 'package:image_viewer/src/view/widgets/gyro/gyro_parallax_card.dart';
 import 'package:image_viewer/src/view/widgets/image_square/image_viewer_body.dart';
 import 'package:image_viewer/src/view/widgets/image_square/image_viewer_square.dart';
-import 'package:image_viewer/src/view/widgets/loading/background_loading_indicator.dart';
 
 class ImageViewer extends StatefulWidget {
   const ImageViewer({
@@ -95,11 +93,14 @@ class _ImageViewerState extends State<ImageViewer> with AnimatedPressMixin {
               padding: const EdgeInsets.all(20.0),
               child: AspectRatio(
                 aspectRatio: 1,
-                child: ImageViewerSquare(
-                  localPath: widget.image.localPath,
-                  networkPath: widget.image.url,
-                  imageUid: widget.image.uid,
-                  lightestColor: widget.image.lightestColor,
+                child: GyroParallaxCard(
+                  enabled: widget.selected && !widget.disabled,
+                  child: ImageViewerSquare(
+                    localPath: widget.image.localPath,
+                    networkPath: widget.image.url,
+                    imageUid: widget.image.uid,
+                    lightestColor: widget.image.lightestColor,
+                  ),
                 ),
               ),
             ),

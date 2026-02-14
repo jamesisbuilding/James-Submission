@@ -10,6 +10,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_analysis_service/image_analysis_service.dart';
 import 'package:image_viewer/image_viewer.dart';
 import 'package:image_viewer/src/view/widgets/alerts/custom_dialog.dart';
+import 'package:image_viewer/src/view/widgets/background/floating_collected_colors.dart';
 import 'package:image_viewer/src/view/widgets/background/image_viewer_background.dart';
 import 'package:image_viewer/src/view/widgets/control_bar/control_bar.dart';
 import 'package:image_viewer/src/view/widgets/image_carousel.dart';
@@ -176,11 +177,19 @@ class _ImageViewerContentState extends State<_ImageViewerContent> {
                   prev.errorType != curr.errorType &&
                   curr.errorType != ViewerErrorType.none,
               listener: (context, state) {
+                final hasNoVisibleImages = state.visibleImages.isEmpty;
                 showCustomDialog(
                   context: context,
                   message: state.errorType.message,
                   onDismiss: () {
                     context.read<ImageViewerBloc>().add(const ErrorDismissed());
+                    if (hasNoVisibleImages) {
+                      context.read<ImageViewerBloc>().add(
+                            const ImageViewerFetchRequested(
+                              loadingType: ViewerLoadingType.manual,
+                            ),
+                          );
+                    }
                   },
                   icon: const Icon(Icons.image_not_supported_outlined),
                 );

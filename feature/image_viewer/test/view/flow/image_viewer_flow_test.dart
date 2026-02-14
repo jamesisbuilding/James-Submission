@@ -1,10 +1,12 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
 import 'package:image_analysis_service/image_analysis_service.dart';
 import 'package:image_viewer/image_viewer.dart';
+import 'package:image_viewer/src/bloc/image_viewer_bloc.dart';
 import 'package:image_viewer/src/data/datasources/image_remote_datasource.dart';
 import 'package:image_viewer/src/data/repositories/image_repository_impl.dart';
 import 'package:image_viewer/src/domain/repositories/image_repository.dart';
@@ -16,6 +18,7 @@ import '../../data/fakes/fake_image_remote_datasource.dart';
 
 const _testOverlayKey = Key('test_overlay');
 const _bottomLayerKey = Key('test_bottom_layer');
+const _firstContentKey = Key('first_content');
 
 void main() {
   late GetIt testGetIt;
@@ -61,16 +64,32 @@ void main() {
     fakeTtsService.dispose();
   });
 
-  Widget buildTestFlow({Widget Function(VoidCallback onVideoComplete)? overlayBuilder}) {
+  /// When [useOrchestrationLayer] is true, uses a bloc-driven layer that shows
+  /// first content when fetch completes (avoids shaders). Else uses a stub.
+  Widget buildTestFlow({
+    Widget Function(VoidCallback onVideoComplete)? overlayBuilder,
+    bool useOrchestrationLayer = false,
+  }) {
     return MaterialApp(
       home: ImageViewerFlow(
         getIt: testGetIt,
         onThemeToggle: () {},
-        bottomLayer: ColoredBox(
-          key: _bottomLayerKey,
-          color: Colors.grey,
-          child: const SizedBox.expand(),
-        ),
+        bottomLayer: useOrchestrationLayer
+            ? BlocBuilder<ImageViewerBloc, ImageViewerState>(
+                builder: (context, state) {
+                  final hasContent = state.visibleImages.isNotEmpty;
+                  return ColoredBox(
+                    key: hasContent ? _firstContentKey : _bottomLayerKey,
+                    color: hasContent ? Colors.green : Colors.grey,
+                    child: const SizedBox.expand(),
+                  );
+                },
+              )
+            : ColoredBox(
+                key: _bottomLayerKey,
+                color: Colors.grey,
+                child: const SizedBox.expand(),
+              ),
         overlayBuilder: overlayBuilder ??
             (onComplete) => GestureDetector(
                   key: _testOverlayKey,
@@ -149,6 +168,52 @@ void main() {
       await tester.pump(const Duration(milliseconds: 650));
 
       expect(find.byKey(_bottomLayerKey), findsOneWidget);
+    });
+  });
+
+  group('Cold start → intro video → first content', () {
+    testWidgets('validates real orchestration: overlay visible, fetch runs, '
+        'first content appears, video complete reveals content', (tester) async {
+      await tester.pumpWidget(buildTestFlow(useOrchestrationLayer: true));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      // 1. Cold start: overlay (intro video) visible and blocks pointer
+      expect(find.byKey(_testOverlayKey), findsOneWidget);
+      final ignorePointerBefore = tester.widget<IgnorePointer>(
+        find.ancestor(
+          of: find.byKey(_testOverlayKey),
+          matching: find.byType(IgnorePointer),
+        ).first,
+      );
+      expect(ignorePointerBefore.ignoring, false);
+
+      // 2. Let fetch complete: repository stream → bloc emits → content appears
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(find.byKey(_firstContentKey), findsOneWidget);
+
+      // 3. Simulate video complete (tap overlay)
+      await tester.tap(find.byKey(_testOverlayKey));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 650));
+
+      // 4. Overlay fades, pointer released, content revealed
+      final animatedOpacity = tester.widget<AnimatedOpacity>(
+        find.descendant(
+          of: find.byType(Transform),
+          matching: find.byType(AnimatedOpacity),
+        ).first,
+      );
+      expect(animatedOpacity.opacity, 0.0);
+
+      final ignorePointerAfter = tester.widget<IgnorePointer>(
+        find.ancestor(
+          of: find.byKey(_testOverlayKey),
+          matching: find.byType(IgnorePointer),
+        ).first,
+      );
+      expect(ignorePointerAfter.ignoring, true);
+      expect(find.byKey(_firstContentKey), findsOneWidget);
     });
   });
 }

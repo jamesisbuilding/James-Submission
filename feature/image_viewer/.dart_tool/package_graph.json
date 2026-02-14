@@ -22,6 +22,7 @@
         "get_it",
         "image_analysis_service",
         "image_pixels",
+        "sensors_plus",
         "shimmer",
         "shimmer_animation",
         "tts_service",
@@ -31,7 +32,9 @@
         "build_runner",
         "flutter_lints",
         "flutter_test",
-        "freezed"
+        "freezed",
+        "mocktail",
+        "sqflite_common_ffi"
       ]
     },
     {
@@ -88,6 +91,26 @@
       ]
     },
     {
+      "name": "mocktail",
+      "version": "1.0.4",
+      "dependencies": [
+        "collection",
+        "matcher",
+        "test_api"
+      ]
+    },
+    {
+      "name": "sqflite_common_ffi",
+      "version": "2.4.0+2",
+      "dependencies": [
+        "meta",
+        "path",
+        "sqflite_common",
+        "sqlite3",
+        "synchronized"
+      ]
+    },
+    {
       "name": "flutter_lints",
       "version": "6.0.0",
       "dependencies": [
@@ -110,6 +133,15 @@
         "stream_channel",
         "test_api",
         "vector_math"
+      ]
+    },
+    {
+      "name": "sensors_plus",
+      "version": "6.1.2",
+      "dependencies": [
+        "flutter",
+        "flutter_web_plugins",
+        "sensors_plus_platform_interface"
       ]
     },
     {
@@ -571,6 +603,62 @@
       "dependencies": []
     },
     {
+      "name": "test_api",
+      "version": "0.7.7",
+      "dependencies": [
+        "async",
+        "boolean_selector",
+        "collection",
+        "meta",
+        "source_span",
+        "stack_trace",
+        "stream_channel",
+        "string_scanner",
+        "term_glyph"
+      ]
+    },
+    {
+      "name": "matcher",
+      "version": "0.12.17",
+      "dependencies": [
+        "async",
+        "meta",
+        "stack_trace",
+        "term_glyph",
+        "test_api"
+      ]
+    },
+    {
+      "name": "synchronized",
+      "version": "3.4.0",
+      "dependencies": []
+    },
+    {
+      "name": "sqflite_common",
+      "version": "2.5.6",
+      "dependencies": [
+        "meta",
+        "path",
+        "synchronized"
+      ]
+    },
+    {
+      "name": "sqlite3",
+      "version": "3.1.5",
+      "dependencies": [
+        "code_assets",
+        "collection",
+        "crypto",
+        "ffi",
+        "hooks",
+        "meta",
+        "native_toolchain_c",
+        "path",
+        "typed_data",
+        "web"
+      ]
+    },
+    {
       "name": "lints",
       "version": "6.1.0",
       "dependencies": []
@@ -619,29 +707,20 @@
       ]
     },
     {
-      "name": "matcher",
-      "version": "0.12.17",
+      "name": "sensors_plus_platform_interface",
+      "version": "2.0.1",
       "dependencies": [
-        "async",
+        "flutter",
+        "logging",
         "meta",
-        "stack_trace",
-        "term_glyph",
-        "test_api"
+        "plugin_platform_interface"
       ]
     },
     {
-      "name": "test_api",
-      "version": "0.7.7",
+      "name": "flutter_web_plugins",
+      "version": "0.0.0",
       "dependencies": [
-        "async",
-        "boolean_selector",
-        "collection",
-        "meta",
-        "source_span",
-        "stack_trace",
-        "stream_channel",
-        "string_scanner",
-        "term_glyph"
+        "flutter"
       ]
     },
     {
@@ -949,6 +1028,56 @@
       "dependencies": []
     },
     {
+      "name": "term_glyph",
+      "version": "1.2.2",
+      "dependencies": []
+    },
+    {
+      "name": "boolean_selector",
+      "version": "2.1.2",
+      "dependencies": [
+        "source_span",
+        "string_scanner"
+      ]
+    },
+    {
+      "name": "native_toolchain_c",
+      "version": "0.17.4",
+      "dependencies": [
+        "code_assets",
+        "glob",
+        "hooks",
+        "logging",
+        "meta",
+        "pub_semver"
+      ]
+    },
+    {
+      "name": "code_assets",
+      "version": "1.0.0",
+      "dependencies": [
+        "collection",
+        "hooks"
+      ]
+    },
+    {
+      "name": "hooks",
+      "version": "1.0.1",
+      "dependencies": [
+        "collection",
+        "crypto",
+        "logging",
+        "meta",
+        "pub_semver",
+        "yaml"
+      ]
+    },
+    {
+      "name": "ffi",
+      "version": "2.2.0",
+      "dependencies": []
+    },
+    {
       "name": "leak_tracker_testing",
       "version": "3.0.2",
       "dependencies": [
@@ -969,26 +1098,6 @@
       ]
     },
     {
-      "name": "term_glyph",
-      "version": "1.2.2",
-      "dependencies": []
-    },
-    {
-      "name": "boolean_selector",
-      "version": "2.1.2",
-      "dependencies": [
-        "source_span",
-        "string_scanner"
-      ]
-    },
-    {
-      "name": "flutter_web_plugins",
-      "version": "0.0.0",
-      "dependencies": [
-        "flutter"
-      ]
-    },
-    {
       "name": "plugin_platform_interface",
       "version": "2.1.8",
       "dependencies": [
@@ -1001,11 +1110,6 @@
       "dependencies": [
         "source_span"
       ]
-    },
-    {
-      "name": "synchronized",
-      "version": "3.4.0",
-      "dependencies": []
     },
     {
       "name": "uuid",
@@ -1202,11 +1306,6 @@
       "dependencies": []
     },
     {
-      "name": "ffi",
-      "version": "2.2.0",
-      "dependencies": []
-    },
-    {
       "name": "platform",
       "version": "3.1.6",
       "dependencies": []
@@ -1296,15 +1395,6 @@
         "ffi",
         "meta",
         "path"
-      ]
-    },
-    {
-      "name": "sqflite_common",
-      "version": "2.5.6",
-      "dependencies": [
-        "meta",
-        "path",
-        "synchronized"
       ]
     },
     {

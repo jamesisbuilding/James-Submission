@@ -128,5 +128,39 @@ void main() {
         )),
       );
     });
+
+    test('Success model with duplicate pixel signature increments sequential counter and throws at threshold',
+        () async {
+      const sameSig = 'duplicate_sig';
+      fakeDatasource.reset(
+        urlsToReturn: [
+          'https://a.com/1',
+          'https://b.com/2',
+          'https://c.com/3',
+          'https://d.com/4',
+          'https://e.com/5',
+        ],
+      );
+      fakeAnalysisService.reset(
+        resultsToReturn: [
+          Success(testImage('uid1', sameSig)),
+          Success(testImage('uid2', sameSig)),
+          Success(testImage('uid3', sameSig)),
+          Success(testImage('uid4', sameSig)),
+          Success(testImage('uid5', sameSig)),
+        ],
+      );
+
+      final stream = repository.runImageRetrieval(count: 3, existingImages: []);
+
+      expect(
+        () => stream.toList(),
+        throwsA(isA<NoMoreImagesException>().having(
+          (e) => e.message,
+          'message',
+          contains('Too many sequential duplicates'),
+        )),
+      );
+    });
   });
 }

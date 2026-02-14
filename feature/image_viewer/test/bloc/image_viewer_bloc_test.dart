@@ -172,7 +172,36 @@ void main() {
       expect(states.last.errorType, ViewerErrorType.noMoreImages);
     });
 
-    test('NoMoreImagesException during background fetch does NOT show error',
+    test('NoMoreImagesException during background fetch with images does NOT show error',
+        () async {
+      when(() => mockRepository.runImageRetrieval(
+            count: any(named: 'count'),
+            existingImages: any(named: 'existingImages'),
+          )).thenAnswer((_) => Stream.error(NoMoreImagesException()));
+
+      bloc = ImageViewerBloc(imageRepository: mockRepository);
+      bloc.emit(ImageViewerState(
+        visibleImages: [_image('uid1', 'sig1')],
+        fetchedImages: [],
+        selectedImage: _image('uid1', 'sig1'),
+        loadingType: ViewerLoadingType.none,
+      ));
+
+      bloc.add(const ImageViewerFetchRequested(
+        count: 1,
+        loadingType: ViewerLoadingType.background,
+      ));
+
+      final states = await collectUntil(
+        bloc,
+        (s) => s.loadingType == ViewerLoadingType.none,
+      );
+
+      expect(states.last.loadingType, ViewerLoadingType.none);
+      expect(states.last.errorType, ViewerErrorType.none);
+    });
+
+    test('NoMoreImagesException during background fetch with NO visible images DOES show error',
         () async {
       when(() => mockRepository.runImageRetrieval(
             count: any(named: 'count'),
@@ -190,7 +219,8 @@ void main() {
       );
 
       expect(states.last.loadingType, ViewerLoadingType.none);
-      expect(states.last.errorType, ViewerErrorType.none);
+      expect(states.last.errorType, ViewerErrorType.noMoreImages);
+      expect(states.last.visibleImages, isEmpty);
     });
 
     test('TimeoutException only shows manual-mode errors', () async {
@@ -213,7 +243,32 @@ void main() {
       expect(states.last.errorType, ViewerErrorType.fetchTimeout);
     });
 
-    test('TimeoutException during background fetch does NOT show error',
+    test('TimeoutException during background fetch with images does NOT show error',
+        () async {
+      when(() => mockRepository.runImageRetrieval(
+            count: any(named: 'count'),
+            existingImages: any(named: 'existingImages'),
+          )).thenAnswer((_) => Stream.error(TimeoutException('test')));
+
+      bloc = ImageViewerBloc(imageRepository: mockRepository);
+      bloc.emit(ImageViewerState(
+        visibleImages: [_image('uid1', 'sig1')],
+        fetchedImages: [],
+        selectedImage: _image('uid1', 'sig1'),
+        loadingType: ViewerLoadingType.none,
+      ));
+
+      bloc.add(const ImageViewerFetchRequested(
+        count: 1,
+        loadingType: ViewerLoadingType.background,
+      ));
+
+      await Future<void>.delayed(const Duration(milliseconds: 300));
+
+      expect(bloc.state.errorType, ViewerErrorType.none);
+    });
+
+    test('TimeoutException during background fetch with NO visible images DOES show error',
         () async {
       when(() => mockRepository.runImageRetrieval(
             count: any(named: 'count'),
@@ -225,9 +280,34 @@ void main() {
         loadingType: ViewerLoadingType.background,
       ));
 
-      await Future<void>.delayed(const Duration(milliseconds: 300));
+      final states = await collectUntil(
+        bloc,
+        (s) => s.loadingType == ViewerLoadingType.none,
+      );
 
-      expect(bloc.state.errorType, ViewerErrorType.none);
+      expect(states.last.errorType, ViewerErrorType.fetchTimeout);
+      expect(states.last.visibleImages, isEmpty);
+    });
+
+    test('generic error during background fetch with NO visible images DOES show error',
+        () async {
+      when(() => mockRepository.runImageRetrieval(
+            count: any(named: 'count'),
+            existingImages: any(named: 'existingImages'),
+          )).thenAnswer((_) => Stream.error(Exception('Network error')));
+
+      bloc.add(const ImageViewerFetchRequested(
+        count: 1,
+        loadingType: ViewerLoadingType.background,
+      ));
+
+      final states = await collectUntil(
+        bloc,
+        (s) => s.loadingType == ViewerLoadingType.none,
+      );
+
+      expect(states.last.errorType, ViewerErrorType.unableToFetchImage);
+      expect(states.last.visibleImages, isEmpty);
     });
 
     test('background fetch completion resets loading to none', () async {
@@ -396,6 +476,65 @@ void main() {
           )).called(1);
       expect(states.last.loadingType, ViewerLoadingType.none);
       bloc.close();
+    });
+  });
+
+  group('Bloc handlers coverage', () {
+    test('ErrorDismissed clears errorType', () async {
+      bloc.emit(ImageViewerState(
+        visibleImages: [_image('uid1', 'sig1')],
+        fetchedImages: [],
+        selectedImage: _image('uid1', 'sig1'),
+        loadingType: ViewerLoadingType.none,
+        errorType: ViewerErrorType.unableToFetchImage,
+      ));
+
+      bloc.add(const ErrorDismissed());
+      await Future<void>.delayed(Duration.zero);
+
+      expect(bloc.state.errorType, ViewerErrorType.none);
+    });
+
+    test('CarouselControllerRegistered and Unregistered update state',
+        () async {
+      final controller = PageController();
+
+      bloc.add(CarouselControllerRegistered(controller: controller));
+      await Future<void>.delayed(Duration.zero);
+      expect(bloc.state.carouselController, controller);
+
+      bloc.add(const CarouselControllerUnregistered());
+      await Future<void>.delayed(Duration.zero);
+      expect(bloc.state.carouselController, isNull);
+    });
+
+    test('generic catch emits unableToFetchImage for manual load', () async {
+      when(() => mockRepository.runImageRetrieval(
+            count: any(named: 'count'),
+            existingImages: any(named: 'existingImages'),
+          )).thenAnswer((_) => Stream.error(Exception('Network error')));
+
+      bloc.add(const ImageViewerFetchRequested(
+        count: 1,
+        loadingType: ViewerLoadingType.manual,
+      ));
+
+      final states = await collectUntil(
+        bloc,
+        (s) => s.loadingType == ViewerLoadingType.none,
+      );
+
+      expect(states.last.errorType, ViewerErrorType.unableToFetchImage);
+    });
+
+    test('releaseReservedSignature removes in-flight signature', () {
+      expect(bloc.tryReserveSignature('sig1'), true);
+      bloc.releaseReservedSignature('sig1');
+      expect(bloc.tryReserveSignature('sig1'), true);
+    });
+
+    test('releaseReservedSignature does nothing for empty signature', () {
+      bloc.releaseReservedSignature('');
     });
   });
 }

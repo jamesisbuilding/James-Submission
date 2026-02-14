@@ -75,19 +75,22 @@ extension ImageBlocHandlers on ImageViewerBloc {
       // Final cleanup: Stream is finished
       emit(state.copyWith(loadingType: ViewerLoadingType.none));
     } on NoMoreImagesException {
-      // Use current state: loadingType may have changed during the stream
-      // (e.g. first image arrival switched manual→background), so we only
-      // surface errors when the user is still actively waiting (manual).
+      // Surface errors when user is actively waiting (manual) or when we have
+      // no visible images (initial/background fetch failure - user needs feedback).
       final isManualAtCatch = state.loadingType == ViewerLoadingType.manual;
+      final hasNoVisibleImages = state.visibleImages.isEmpty;
       emit(
         state.copyWith(
           loadingType: ViewerLoadingType.none,
-          errorType: isManualAtCatch ? ViewerErrorType.noMoreImages : null,
+          errorType: (isManualAtCatch || hasNoVisibleImages)
+              ? ViewerErrorType.noMoreImages
+              : null,
         ),
       );
     } on TimeoutException {
       final isManualAtCatch = state.loadingType == ViewerLoadingType.manual;
-      if (isManualAtCatch) {
+      final hasNoVisibleImages = state.visibleImages.isEmpty;
+      if (isManualAtCatch || hasNoVisibleImages) {
         emit(
           state.copyWith(
             errorType: ViewerErrorType.fetchTimeout,
@@ -97,7 +100,8 @@ extension ImageBlocHandlers on ImageViewerBloc {
       }
     } catch (e) {
       final isManualAtCatch = state.loadingType == ViewerLoadingType.manual;
-      if (isManualAtCatch) {
+      final hasNoVisibleImages = state.visibleImages.isEmpty;
+      if (isManualAtCatch || hasNoVisibleImages) {
         emit(
           state.copyWith(
             errorType: ViewerErrorType.unableToFetchImage,

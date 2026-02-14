@@ -2,11 +2,19 @@
 
 Flutter coding-assessment project for Aurora.
 
+**Key highlights**
+- **Background prefetching** — Scroll-triggered prefetch + manual "Another" fetch; queue management for near-instant transitions; deduplication (URL + pixel signature) with exponential backoff.
+- **Shader-driven color interpolation** — GPU-accelerated linear interpolation of palettes across the carousel; background transitions driven by visible-image ratios.
+- **AI-augmented data** — LLM-powered titles and descriptions (ChatGPT/Gemini) for each image; accessibility-first storytelling.
+- **TTS with word highlighting** — ElevenLabs-backed text-to-speech; synchronized word highlighting for immersive playback.
+- **80.4% test coverage** — 103 tests across bloc, repository, datasource, cubits, DI, widget, integration, and golden suites.
+
 IMGO is a feed-based, luxury-travel inspiration app with:
 - intro video + seamless transition into an image carousel,
 - AI-generated titles/descriptions for accessibility/storytelling,
 - text-to-speech playback with word-highlighting,
 - favourites + share,
+- gyroscope parallax on the selected image card (iOS/Android),
 - dynamic colour-driven UI.
 
 > **Best experienced on a physical device in `--profile` mode:**  
@@ -96,7 +104,7 @@ flutter pub get
 dart run build_runner build -d
 ```
 
-The app is best optimized for iPhone 17 Pro. Although it should run on other devices, additional testing is required to ensure full compatibility.
+The app is best optimized for iPhone 17 Pro. Although it should run on other devices, broader device-matrix testing would validate full compatibility.
 
 
 ### The app contains the following ###
@@ -119,16 +127,17 @@ The app is best optimized for iPhone 17 Pro. Although it should run on other dev
 11. Expansion mode – expand the image to see title, description and colour palette. Stealth colour collector: tap "Collect Colors" in the palette view to save the image’s palette; collected state persists and reduces rebuild scope via CollectedColorsCubit
 12. Linear interpolation between colors – as the carousel moves the background palette changes with respect to the ratio of which image is primarily visible
 13. Expandable image cards – tap an image to expand and see the full title and description, with the play button for TTS
-14. Accessibility – interfaces with Eleven Labs API to read out the short story/description of the image and have highlighted text on each word. 
-15. Favourite and Share – users can favourite and share images. Share has two modes: collapsed shares the raw image and description; expanded mode captures a screenshot of the carousel (excluding the control bar)
-16. **Control bar main button** – dynamic button with multiple states:
+14. **Gyroscope parallax** – the selected image card responds to device gyroscope on iPhone: tilt the device to see a subtle 3D parallax effect on the centred card (iOS/Android only)
+15. Accessibility – interfaces with Eleven Labs API to read out the short story/description of the image and have highlighted text on each word. 
+16. Favourite and Share – users can favourite and share images. Share has two modes: collapsed shares the raw image and description; expanded mode captures a screenshot of the carousel (excluding the control bar)
+17. **Control bar main button** – dynamic button with multiple states:
     - **Background image:** shows the next image (from prefetched queue) if available; if none are fetched, shows the current/selected image; when carousel is expanded, shows the current image as a faint background. Colours driven by the image palette.
     - **Loading state:** shows a spinner when manually fetching ("Another" tapped with no prefetched images) or when loading audio.
     - **Audio mode:** when the carousel is expanded, the button switches to play/pause for TTS (replacing the "Another" label).
     - Contrast ratio threshold (WCAG AAA). Minimum 7:1 for accessibility.
-17. Light and Dark mode – toggle via the button at the top right
-18. Control bar – collapsible and updates to changes in selected image colors. Background loading indicator sits 8px above the right edge of the control bar and moves with expand/collapse. Hidden/collapsed until the first image arrives, then reveals and pops up to expanded.
-19. Error dialogs – we surface fetch failures and duplicate exhaustion so the user knows what's going on
+18. Light and Dark mode – toggle via the button at the top right
+19. Control bar – collapsible and updates to changes in selected image colors. Background loading indicator sits 8px above the right edge of the control bar and moves with expand/collapse. Hidden/collapsed until the first image arrives, then reveals and pops up to expanded.
+20. Error dialogs – we surface fetch failures and duplicate exhaustion so the user knows what's going on
 
 
 ### Architecture
@@ -165,14 +174,11 @@ The view layer has been refactored: the background loading indicator is integrat
 Eleven Labs (TTS) and LLM (ChatGPT/Gemini) could be made more robust – retries, fallbacks, clearer error handling and user feedback when those services fail. 
 
 ### Recommended next hardening steps
-1. Extend automated tests:
-   - ✅ unit tests for ImageViewerBloc fetch + duplicate + error paths (see [Testing](#testing)),
-   - widget tests for critical controls and expanded card behaviour,
-   - integration test for video → viewer transition + initial fetch.
+1. **Tests (80.4% coverage):** Unit tests for bloc, repository, datasource, cubits, and DI; widget tests for control bar, expanded card, custom dialog; integration tests for fetch flow and video → viewer transition; golden tests for UI regression. See [Testing](#testing).
 2. Introduce environment-driven pipeline selection (ChatGPT vs Gemini) instead of code-level toggle.
 3. Add structured logging/telemetry and production log-level controls.
 4. Consider an explicit repository/result error model to remove generic thrown exceptions.
-5. Add CI checks for formatting, linting, and test execution across packages.
+5. Add CI checks for formatting, linting, and test execution across packages (e.g. `flutter test --coverage` in `feature/image_viewer`).
 
 ---
 
@@ -180,20 +186,35 @@ Eleven Labs (TTS) and LLM (ChatGPT/Gemini) could be made more robust – retries
 
 - Current optimization target is iPhone-class form factors; broader device matrix testing is still needed.
 - External provider limits/latency (image API, OpenAI/Gemini, ElevenLabs) can impact perceived responsiveness.
-- ImageViewerBloc has unit test coverage; widget/integration coverage is minimal.
 
 ---
 
 ## Testing
 
-**Test coverage summary** (25 tests in `feature/image_viewer`)
+**Test coverage summary** — **103 tests**, **80.4% line coverage** (`feature/image_viewer`)
 
 | Suite | Tests | Path |
 |-------|-------|------|
-| ImageViewerBloc | 13 | `test/bloc/image_viewer_bloc_test.dart` |
-| ImageRepositoryImpl | 5 | `test/data/repositories/image_repository_impl_test.dart` |
+| ImageViewerBloc | 18 | `test/bloc/image_viewer_bloc_test.dart` |
+| Fetch flow integration | 4 | `test/integration/fetch_flow_integration_test.dart` |
+| ImageRepositoryImpl | 6 | `test/data/repositories/image_repository_impl_test.dart` |
+| ImageRemoteDatasource | 4 | `test/data/datasources/image_remote_datasource_test.dart` |
+| ImageViewerExceptions | 3 | `test/domain/exceptions/image_viewer_exceptions_test.dart` |
+| CollectedColorsCubit | 5 | `test/cubit/collected_colors_cubit_test.dart` |
 | TtsCubit | 4 | `test/cubit/tts_cubit_test.dart` |
+| ImageProviderUtils | 7 | `test/utils/image_provider_utils_test.dart` |
+| ImageViewerModule (DI) | 6 | `test/di/image_viewer_module_test.dart` |
+| ImageViewerFlow | 4 | `test/view/flow/image_viewer_flow_test.dart` |
+| ControlBar | 4 | `test/view/widgets/control_bar/control_bar_test.dart` |
+| ControlBarMainButton | 6 | `test/view/widgets/control_bar/control_bar_main_button_test.dart` |
+| ImageViewer expanded body | 3 | `test/view/widgets/image_square/image_viewer_expanded_body_test.dart` |
+| BackgroundLoadingIndicator | 7 | `test/view/widgets/loading/background_loading_indicator_test.dart` |
 | FavouriteStarButton | 3 | `test/view/widgets/control_bar/favourite_star_button_test.dart` |
+| CustomDialog | 1 | `test/view/widgets/alerts/custom_dialog_test.dart` |
+| GyroParallaxCard | 5 | `test/view/widgets/gyro/gyro_parallax_card_test.dart` |
+| Golden (UI regression) | 10 | `test/golden/golden_test.dart` |
+
+**Golden tests (10):** `test/golden/golden_test.dart` — control bar collapsed/expanded/light/dark, loading indicator, intro thumbnail, expanded card (long text), error dialog, carousel collapsed, animated background. Run with `--update-goldens` to create/update. See `docs/GOLDEN_TESTS_PLAN.md` for full plan.
 
 ### ImageViewerBloc unit tests
 
@@ -204,7 +225,7 @@ cd feature/image_viewer
 flutter test test/bloc/image_viewer_bloc_test.dart
 ```
 
-**Coverage (13 tests)**
+**Coverage (18 tests)**
 
 *Fetch + duplicate guard:*
 | Test | Covers |
@@ -227,6 +248,15 @@ flutter test test/bloc/image_viewer_bloc_test.dart
 | AnotherImageEvent with no prefetched and loading background: switches to manual, no new fetch | User waiting – switch to manual, no duplicate request |
 | ImageViewerFetchRequested with default params triggers background prefetch | Scroll-to-page (length-2) prefetch path |
 
+*Bloc handlers coverage:*
+| Test | Covers |
+|------|--------|
+| ErrorDismissed clears errorType | Error dismissal path |
+| CarouselControllerRegistered and Unregistered update state | Carousel controller lifecycle |
+| generic catch emits unableToFetchImage for manual load | Non-Timeout/NoMoreImages error surfacing |
+| releaseReservedSignature removes in-flight signature | Signature reservation cleanup |
+| releaseReservedSignature does nothing for empty signature | Empty-signature guard |
+
 **Fetch triggers (where `ImageViewerFetchRequested` is dispatched):**
 
 | Trigger | Location | Type | When |
@@ -239,6 +269,26 @@ flutter test test/bloc/image_viewer_bloc_test.dart
 
 Uses `mocktail` to mock `ImageRepository`; no `bloc_test` (dependency conflicts with `flutter_bloc 9`).
 
+### Fetch flow integration tests
+
+End-to-end bloc + repository orchestration and duplicate-risk logic:
+
+```bash
+cd feature/image_viewer
+flutter test test/integration/fetch_flow_integration_test.dart
+```
+
+**Coverage (4 tests)**
+
+| Test | Covers |
+|------|--------|
+| initial fetch → prefetch → Another → no duplicate signatures | Initial fetch, scroll-triggered prefetch, consume from queue, assert unique signatures |
+| Another with prefetched queue: consumes without new fetch until queue=1 | No redundant fetch when 2+ in queue; fetch triggered when queue drops to 1 |
+| Another with empty queue: triggers manual fetch | Manual fetch path when user taps Another with no prefetched |
+| duplicate signatures from repo are never surfaced in bloc state | Bloc + repo dedupe: visibleImages + fetchedImages always unique |
+
+Uses `ImageRepositoryImpl` with `FakeImageRemoteDatasource` and `FakeImageAnalysisService`. Aligns with duplicate-risk logic in bloc handlers and repository.
+
 ### ImageRepositoryImpl unit tests
 
 Repository dedupe, retry, and duplicate-exhaustion logic are tested with fake datasource and fake analysis service:
@@ -248,12 +298,13 @@ cd feature/image_viewer
 flutter test test/data/repositories/image_repository_impl_test.dart
 ```
 
-**Coverage (5 tests)**
+**Coverage (6 tests)**
 
 | Test | Covers |
 |------|--------|
 | URL dedupe (rawUrls.toSet()) works | Duplicate URLs from parallel fetches are deduped before analysis |
 | duplicate result increments sequential duplicate counter and throws at threshold | `FailureType.duplicate` → `NoMoreImagesException` at 3 sequential |
+| Success model with duplicate pixel signature increments sequential counter and throws at threshold | Success with duplicate sig in `_seenSignatures` → `NoMoreImagesException` |
 | non-duplicate results decrement remainingToFetch and stream yields expected count | Success path, stream yields exactly `count` images |
 | backoff retries stop once target count is reached | No extra rounds once target met |
 | throws when all attempts fail | Generic `Exception` after all retries exhausted |
@@ -280,6 +331,111 @@ flutter test test/cubit/tts_cubit_test.dart
 
 Uses `FakeTtsService` with controllable completion and error behavior.
 
+### ImageViewerFlow widget tests
+
+Video overlay, fade-out, and underlying viewer visibility:
+
+```bash
+cd feature/image_viewer
+flutter test test/view/flow/image_viewer_flow_test.dart
+```
+
+**Coverage (4 tests)**
+
+| Test | Covers |
+|------|--------|
+| VideoView initially visible, blocks pointer | Intro video shown on top, blocks touch |
+| after onVideoComplete, opacity animates to 0 and pointer is released | Fade-out animation, pointer events enabled |
+| ImageViewerScreen is present underneath throughout | Underlying viewer mounted throughout flow |
+| Cold start → intro video → first content | Real orchestration: overlay visible, fetch runs on mount, content appears from bloc state, video complete fades overlay |
+
+Uses `overlayBuilder` and `bottomLayer` test overrides to avoid shader assets and CarouselScope dependencies. The cold-start test uses a bloc-driven bottom layer (`useOrchestrationLayer: true`) that shows first content when `visibleImages` is non-empty, validating the full path: fetch → stream → bloc emit → UI.
+
+### ControlBar background loading indicator
+
+Tests the bottom-right indicator that shows during background prefetch:
+
+```bash
+cd feature/image_viewer
+flutter test test/view/widgets/control_bar/control_bar_test.dart
+```
+
+**Coverage (4 tests)**
+
+| Test | Covers |
+|------|--------|
+| visible when background loading and has images, carousel not expanded | Indicator shows during prefetch |
+| not visible when manual loading | Manual "Another" uses main button spinner |
+| not visible when no visible images | Initial load uses carousel indicator |
+| indicator not in tree when carousel expanded | Collection-if hides entire widget when expanded |
+
+### ControlBarMainButton widget tests
+
+Main button background image, mode, and loading state logic:
+
+```bash
+cd feature/image_viewer
+flutter test test/view/widgets/control_bar/control_bar_main_button_test.dart
+```
+
+**Coverage (6 tests)**
+
+| Test | Covers |
+|------|--------|
+| collapsed with prefetched: background shows fetchedImages.first | Background uses prefetched queue when collapsed |
+| collapsed with no prefetched: background shows selectedImage | Fallback to selected image when queue empty |
+| expanded: background shows selectedImage | Expanded always shows selected image |
+| manual loading collapsed: mode audio, isLoading true | Manual fetch shows spinner, mode switches to audio |
+| background loading collapsed: no loading shown | Background fetch does not show spinner on main button |
+| displayImageForColor overrides colors | displayImageForColor drives bg/foreground palette |
+
+Uses `pump(const Duration(milliseconds: 300))` to allow AnimatedPressMixin timer to complete before teardown.
+
+### BackgroundLoadingIndicator visibility
+
+Two instances use different `visibleWhen` logic (carousel vs control bar):
+
+```bash
+cd feature/image_viewer
+flutter test test/view/widgets/loading/background_loading_indicator_test.dart
+```
+
+**Coverage (7 tests)**
+
+*Carousel (center area, initial load):*
+| Test | Covers |
+|------|--------|
+| visible when visibleImages.isEmpty | Shows during initial load before any images |
+| not visible when visibleImages is non-empty | Hides once content is loaded |
+| not visible when expanded even if no images | Hidden when carousel expanded (no overlap with expanded card) |
+| visible when loading and not expanded | Shows when loading AND collapsed |
+
+*Control bar (right edge, background fetch):*
+| Test | Covers |
+|------|--------|
+| visible when background loading and has images | Shows when prefetching more images (scrolling near end) |
+| not visible when manual loading | Manual "Another" uses main button spinner instead |
+| not visible when no visible images | Initial load uses carousel indicator, not control bar |
+
+### ImageViewer expanded body + word highlighting
+
+Expanded layout visibility and TTS word-highlight styling:
+
+```bash
+cd feature/image_viewer
+flutter test test/view/widgets/image_square/image_viewer_expanded_body_test.dart
+```
+
+**Coverage (3 tests)**
+
+| Test | Covers |
+|------|--------|
+| body only appears when expanded | ImageViewerBody present when `expanded=true`, absent when `expanded=false` |
+| when currentWord is injected, one word span gets highlight style | Highlighted word has `backgroundColor` / `color`; exactly one span highlighted |
+| title vs description index mapping displays expected highlighted token | `isTitle` + `wordIndex` maps correctly to title vs description token (e.g. index 1 in each) |
+
+Requires `TtsCubit`, `CollectedColorsCubit`, and `FavouritesCubit` in harness for full widget tree.
+
 ### FavouriteStarButton widget tests
 
 Favourites star rebuild behavior (selective `buildWhen`):
@@ -299,6 +455,27 @@ flutter test test/view/widgets/control_bar/favourite_star_button_test.dart
 
 Uses `debugBuildCount` on `FavouriteStarButton` to instrument rebuilds.
 
+### GyroParallaxCard widget tests
+
+Gyroscope parallax on the selected image card (iOS/Android):
+
+```bash
+cd feature/image_viewer
+flutter test test/view/widgets/gyro/gyro_parallax_card_test.dart
+```
+
+**Coverage (5 tests)**
+
+| Test | Covers |
+|------|--------|
+| renders child when disabled | Pass-through when gyro disabled |
+| renders child when enabled without gyro stream (non-mobile) | No-op on web/desktop |
+| applies Transform when gyro stream emits and enabled | 3D tilt effect from gyroscope |
+| stops applying Transform when disabled mid-stream | Cleanup when toggled off |
+| disposes without error | Subscription cancellation |
+
+Uses injectable `gyroscopeStream` for testing; on device uses `sensors_plus` gyroscope.
+
 ### Run all tests
 
 ```bash
@@ -307,6 +484,9 @@ flutter test
 
 # image_viewer package only
 cd feature/image_viewer && flutter test
+
+# with coverage (80.4% line coverage)
+cd feature/image_viewer && flutter test --coverage
 ```
 
 ---

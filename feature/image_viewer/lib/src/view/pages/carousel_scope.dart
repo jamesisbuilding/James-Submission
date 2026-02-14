@@ -41,6 +41,7 @@ class CarouselControllerScope extends StatefulWidget {
 class CarouselControllerScopeState extends State<CarouselControllerScope> {
   PageController? _pageController;
   final GlobalKey _screenshotKey = GlobalKey();
+  ImageViewerBloc? _bloc;
 
   static const _viewportFraction = 0.8;
 
@@ -80,7 +81,14 @@ class CarouselControllerScopeState extends State<CarouselControllerScope> {
   @override
   void initState() {
     super.initState();
-    if (widget.canShowContent &&
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _bloc ??= context.read<ImageViewerBloc>();
+    if (_pageController == null &&
+        widget.canShowContent &&
         widget.images != null &&
         widget.selectedImage != null) {
       _initController();
@@ -97,7 +105,7 @@ class CarouselControllerScopeState extends State<CarouselControllerScope> {
       viewportFraction: _viewportFraction,
       initialPage: initialPage,
     );
-    context.read<ImageViewerBloc>().add(
+    _bloc!.add(
       CarouselControllerRegistered(controller: _pageController!),
     );
   }
@@ -118,10 +126,8 @@ class CarouselControllerScopeState extends State<CarouselControllerScope> {
 
   @override
   void dispose() {
-    if (_pageController != null) {
-      context.read<ImageViewerBloc>().add(
-        const CarouselControllerUnregistered(),
-      );
+    if (_pageController != null && _bloc != null) {
+      _bloc!.add(const CarouselControllerUnregistered());
     }
     _pageController?.dispose();
     super.dispose();
@@ -155,6 +161,9 @@ class CarouselControllerScopeState extends State<CarouselControllerScope> {
                     colorsListenable: widget.blendedColorsNotifier,
                   ),
                 ),
+                Positioned.fill(
+                  child: const FloatingCollectedColors(),
+                ),
               ],
 
               if (canShowContent &&
@@ -172,6 +181,7 @@ class CarouselControllerScopeState extends State<CarouselControllerScope> {
                 ),
 
               BackgroundLoadingIndicator(
+                key: ValueKey('carousel_loading_${widget.expandedView}'),
                 visibleWhen: (state) => state.visibleImages.isEmpty,
               ),
             ],
