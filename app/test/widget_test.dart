@@ -1,30 +1,34 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
+import 'package:aurora_test/di/service_locator.dart';
+import 'package:aurora_test/theme/theme_notifier.dart';
+import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:aurora_test/main.dart';
-
+/// Smoke test for app DI and theme. Avoids full MyApp/ImageViewerFlow so we don't
+/// pull in video_player (no platform impl in test env).
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  setUpAll(() async {
+    WidgetsFlutterBinding.ensureInitialized();
+    await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+    await configureDependencies();
+  });
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
-
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
+  testWidgets('DI smoke test – ThemeNotifier and themes build', (WidgetTester tester) async {
+    final themeNotifier = serviceLocator.get<ThemeNotifier>();
+    await tester.pumpWidget(
+      ListenableBuilder(
+        listenable: themeNotifier,
+        builder: (context, _) => MaterialApp(
+          theme: lightTheme,
+          darkTheme: darkTheme,
+          themeMode: themeNotifier.themeMode,
+          home: const Scaffold(body: Center(child: Text('IMGO'))),
+        ),
+      ),
+    );
     await tester.pump();
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    expect(find.text('IMGO'), findsOneWidget);
   });
 }
