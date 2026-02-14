@@ -86,35 +86,70 @@ flutter pub get
 dart run build_runner build -d
 ```
 
-## 5) Run
-```bash
-flutter run
-```
+The app is best optimized for iPhone 17 Pro. Although it should run on other devices, additional testing is required to ensure full compatibility.
+
+
+### The app contains the following ###
+
+### Launch
+1. Native splash screen (platform launch screen - better with sound (no sound in emulator recording))
+2. Launcher video 
+3. Streaming in initial batch of images – preloads whilst the video plays
+
+### Fetching and Processing Images
+4. Background fetch – awaiting more images in the background as the user scrolls, triggered by their position in the carousel
+5. Manual fetch – users can request more images via the another button when we don't have any prefetched
+6. Prefetch caching – if we have images preloaded we give the impression of low latency
+7. Data augmentation – use of an LLM interface (ChatGPT or Gemini) to provide the image with a title and description for accessibility
+8. Duplication management – ensure no images are duplicated, using both URL checking and pixel color analysis. If we get 3 duplicate images in a row, we notify the user
+9. Exponential back off – if we receive an error from our image fetching service we retry with exponential back off until the target batch is satisfied or we hit our attempt limit
+10. Image visualisation fallbacks – we save the image locally and use cached network images so we have stable loading into the widget (no empty state)
+
+### UI
+11. Expansion mode - expand the image such that you can see the title, description and colour palette of the image
+12. Linear interpolation between colors – as the carousel moves the background palette changes with respect to the ratio of which image is primarily visible
+13. Expandable image cards – tap an image to expand and see the full title and description, with the play button for TTS
+14. Accessibility – interfaces with Eleven Labs API to read out the short story/description of the image and have highlighted text on each word. 
+15. Favourite and Share – users can favourite and share images. Share has two modes: collapsed shares the raw image and description; expanded mode captures a screenshot of the carousel (excluding the control bar)
+16. Dynamic 'Another' button – changes colour based on the image's color palette, ensuring at least 7 contrast levels for accessibility and holds next up image or selected image as a faint background. 
+17. Light and Dark mode – toggle via the button at the top right
+18. Control bar – collapsible and updates to changes in selected image colors. Background loading indicator sits 8px above the right edge of the control bar and moves with expand/collapse
+19. Main button – dynamic and changes depending on whether we're in image view, loading view or expanded (play/pause for TTS) Contrast ratio threshold (WCAG AAA). Minimum 7:1 for accessibility.
+20. Error dialogs – we surface fetch failures and duplicate exhaustion so the user knows what's going on
+
+
+### Architecture
+
+The project is structured as a modular Flutter app – each feature and core concern lives in its own package so we can slot things together and keep dependencies clear.
+
+**Packages**
+
+- `app` – Shell, main entry, routing (GoRouter), dependency injection (GetIt), theme
+- `feature/image_viewer` – Main feature: domain, data, bloc/cubits, views
+- `core/design_system` – Shared widgets, theming, assets
+- `core/services` – image_analysis_service, tts_service, share_service
+
+**Feature structure (image_viewer)**
+
+- `domain` – Repository contracts, exceptions
+- `data` – Datasources, repository implementations
+- `bloc` – ImageViewerBloc for image state (fetch, selection, carousel)
+- `cubit` – TtsCubit for playback, FavouritesCubit for favourites (kept separate to limit rebuilds)
+- `view` – Flow (ImageViewerFlow) orchestrates video + image viewer, plus pages and widgets
+
+**Patterns**
 
 ---
 
 ## Key product capabilities
 
-- Intro splash/video transition into live feed.
-- Background prefetch near end-of-carousel.
-- Manual fetch fallback (“Another” button).
-- AI caption/title enrichment per image.
-- Duplicate-image exhaustion handling with user feedback.
-- Dynamic gradient/background and button colors from image palettes.
-- TTS playback + progressive word highlighting.
-- Share and favourites actions.
-- Light/Dark theme switch.
-- Error dialogs for retrieval/pipeline failures.
+**Refactoring and optimisation (done)**
 
----
+The view layer has been refactored: the background loading indicator is integrated into the control bar and moves with it on expand/collapse. Bloc handlers use the current state at catch time (not the event’s original loading type) so error surfacing correctly tracks manual vs background loading even when state changes mid-fetch. Duplication handling uses URL deduplication before processing, pixel signature checks, `FailureType.duplicate` from the analysis service, and a bloc-level defensive filter; three sequential duplicates trigger `NoMoreImagesException` and fail fast. Image analysis requests use a 10s timeout with `TimeoutException` surfaced for manual fetches. The Another button uses precache for its color/background image to avoid flash when new images load.
 
-## Architectural assessment summary
+**Still to improve – Eleven Labs and LLM resilience**
 
-### What is strong now
-- Clear package boundaries and low coupling between app shell and feature internals.
-- Sensible state partitioning (bloc for complex orchestration, cubits for focused concerns).
-- Good UX-oriented flow orchestration (preload behind intro video).
-- Service abstraction points (`AbstractTtsService`, analysis pipeline interface) support swapping implementations.
+Eleven Labs (TTS) and LLM (ChatGPT/Gemini) could be made more robust – retries, fallbacks, clearer error handling and user feedback when those services fail. 
 
 ### Recommended next hardening steps
 1. Add automated tests:
