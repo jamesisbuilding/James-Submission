@@ -28,8 +28,7 @@ on a real device.
 
 
 ## Demo
-- Video demos: https://drive.google.com/drive/folders/1iASAfGXv4h4pXNdNDrNEwNQArccPV5KO?usp=sharing
-- Recommended clip to review: **audio and text highlighting**.
+- Video demo: https://drive.google.com/drive/folders/1iASAfGXv4h4pXNdNDrNEwNQArccPV5KO?usp=sharing
 
 ---
 
