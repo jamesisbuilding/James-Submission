@@ -161,9 +161,6 @@ class CarouselControllerScopeState extends State<CarouselControllerScope> {
                     colorsListenable: widget.blendedColorsNotifier,
                   ),
                 ),
-                Positioned.fill(
-                  child: const FloatingCollectedColors(),
-                ),
               ],
 
               if (canShowContent &&

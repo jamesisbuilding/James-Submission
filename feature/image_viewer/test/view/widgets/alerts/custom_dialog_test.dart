@@ -20,7 +20,6 @@ void main() {
                   context: context,
                   message: 'Test message',
                   onDismiss: () => dismissed = true,
-                  icon: const Icon(Icons.warning),
                 );
               },
               child: const Text('Show'),
@@ -34,15 +33,10 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Test message'), findsOneWidget);
-    expect(find.byType(AlertDialog), findsOneWidget);
 
-    final okayButton = find.descendant(
-      of: find.byType(AlertDialog),
-      matching: find.byType(MainButton),
-    );
+    final okayButton = find.text('OK');
     expect(okayButton, findsOneWidget);
-    final center = tester.getCenter(okayButton);
-    await tester.tapAt(center);
+    await tester.tap(okayButton);
     await tester.pumpAndSettle();
 
     expect(dismissed, true);

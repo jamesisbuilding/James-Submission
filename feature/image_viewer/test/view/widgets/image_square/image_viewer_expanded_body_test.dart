@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:image_analysis_service/image_analysis_service.dart';
 import 'package:image_viewer/image_viewer.dart';
 import 'package:image_viewer/src/cubit/cubit.dart';
 import 'package:image_viewer/src/view/widgets/image_square/image_viewer.dart'
     as iv;
 import 'package:image_viewer/src/view/widgets/image_square/image_viewer_body.dart';
-import 'package:tts_service/tts_service.dart';
 
 import '../../../cubit/fakes/fake_tts_service.dart';
 import '../../../data/fakes/fake_image_analysis_service.dart';

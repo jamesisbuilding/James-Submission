@@ -7,14 +7,14 @@ Flutter coding-assessment project for Aurora.
 - **Shader-driven color interpolation** — GPU-accelerated linear interpolation of palettes across the carousel; background transitions driven by visible-image ratios.
 - **AI-augmented data** — LLM-powered titles and descriptions (ChatGPT/Gemini) for each image; accessibility-first storytelling.
 - **TTS with word highlighting** — ElevenLabs-backed text-to-speech; synchronized word highlighting for immersive playback.
-- **82.1% test coverage** — 107 tests across bloc, repository, datasource, cubits, DI, widget, integration, and golden suites.
+- **82.1% test coverage** — 111 tests across share service, bloc, repository, datasource, cubits, DI, widget, integration, and golden suites.
 
 IMGO is a feed-based, luxury-travel inspiration app with:
 - intro video + seamless transition into an image carousel,
 - AI-generated titles/descriptions for accessibility/storytelling,
 - text-to-speech playback with word-highlighting,
 - favourites + share,
-- gyroscope parallax on the selected image card (iOS/Android),
+- gyroscope parallax on the selected image (collapsed and expanded, iOS/Android),
 - dynamic colour-driven UI.
 
 > **Best experienced on a physical device in `--profile` mode:**  
@@ -137,7 +137,7 @@ The app is best optimized for iPhone 17 Pro. Although it should run on other dev
     - Contrast ratio threshold (WCAG AAA). Minimum 7:1 for accessibility.
 18. Light and Dark mode – toggle via the button at the top right
 19. Control bar – collapsible and updates to changes in selected image colors. Background loading indicator sits 8px above the right edge of the control bar and moves with expand/collapse. Hidden/collapsed until the first image arrives, then reveals and pops up to expanded.
-20. Error dialogs – we surface fetch failures and duplicate exhaustion so the user knows what's going on
+20. Error dialogs – glassmorphic, theme-inverted popups (dark in light mode, light in dark mode) surface fetch failures and duplicate exhaustion; retry on dismiss when no images visible
 
 
 ### Architecture
@@ -174,7 +174,7 @@ The view layer has been refactored: the background loading indicator is integrat
 Eleven Labs (TTS) and LLM (ChatGPT/Gemini) could be made more robust – retries, fallbacks, clearer error handling and user feedback when those services fail. 
 
 ### Recommended next hardening steps
-1. **Tests (80.4% coverage):** Unit tests for bloc, repository, datasource, cubits, and DI; widget tests for control bar, expanded card, custom dialog; integration tests for fetch flow and video → viewer transition; golden tests for UI regression. See [Testing](#testing).
+1. **Tests (82.1% coverage):** Unit tests for bloc, repository, datasource, cubits, and DI; widget tests for control bar, expanded card, custom dialog; integration tests for fetch flow and video → viewer transition; golden tests for UI regression. See [Testing](#testing).
 2. Introduce environment-driven pipeline selection (ChatGPT vs Gemini) instead of code-level toggle.
 3. Add structured logging/telemetry and production log-level controls.
 4. Consider an explicit repository/result error model to remove generic thrown exceptions.
@@ -191,10 +191,11 @@ Eleven Labs (TTS) and LLM (ChatGPT/Gemini) could be made more robust – retries
 
 ## Testing
 
-**Test coverage summary** — **107 tests**, **82.1% line coverage** (`feature/image_viewer`)
+**Test coverage summary** — **111 tests** (107 image_viewer + 4 share_service), **82.1% line coverage** (`feature/image_viewer`)
 
 | Suite | Tests | Path |
 |-------|-------|------|
+| ShareService | 4 | `core/services/share_service/test/share_service_impl_test.dart` |
 | ImageViewerBloc | 22 | `test/bloc/image_viewer_bloc_test.dart` |
 | Fetch flow integration | 4 | `test/integration/fetch_flow_integration_test.dart` |
 | ImageRepositoryImpl | 6 | `test/data/repositories/image_repository_impl_test.dart` |
@@ -216,6 +217,24 @@ Eleven Labs (TTS) and LLM (ChatGPT/Gemini) could be made more robust – retries
 | Golden (UI regression) | 10 | `test/golden/golden_test.dart` |
 
 **Golden tests (10):** `test/golden/golden_test.dart` — control bar collapsed/expanded/light/dark, loading indicator, intro thumbnail, expanded card (long text), error dialog, carousel collapsed, animated background. Run with `--update-goldens` to create/update. See `docs/GOLDEN_TESTS_PLAN.md` for full plan.
+
+### ShareService unit tests
+
+Share text construction for screenshot vs collapsed share modes:
+
+```bash
+cd core/services/share_service
+flutter test
+```
+
+**Coverage (4 tests)**
+
+| Test | Covers |
+|------|--------|
+| screenshot mode: empty description and null title yields only tagline | Full-screen share uses only "I sent this from Imgo!" |
+| collapsed mode: title and description are included with tagline | Raw image share includes full title + description |
+| title only yields title and tagline | Partial content handling |
+| description only yields description and tagline | Partial content handling |
 
 ### ImageViewerBloc unit tests
 
@@ -497,15 +516,25 @@ Uses injectable `gyroscopeStream` for testing; on device uses `sensors_plus` gyr
 
 ### Run all tests
 
-```bash
-# from app/
-flutter test
+From the repo root (`aurora_test/`):
 
-# image_viewer package only
+```bash
+# Run every test across all packages (111 tests)
+cd app && flutter test && cd ../feature/image_viewer && flutter test && cd ../../core/services/share_service && flutter test
+
+# Or run each package separately:
+cd app && flutter test
+cd feature/image_viewer && flutter test
+cd core/services/share_service && flutter test
+
+# image_viewer only (107 tests, main feature)
 cd feature/image_viewer && flutter test
 
-# with coverage (82.1% line coverage)
+# With coverage (82.1% line coverage in image_viewer)
 cd feature/image_viewer && flutter test --coverage
+
+# Golden tests — update snapshots after UI changes
+cd feature/image_viewer && flutter test test/golden/golden_test.dart --update-goldens
 ```
 
 ---

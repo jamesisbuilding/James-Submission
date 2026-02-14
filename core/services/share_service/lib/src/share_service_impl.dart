@@ -1,13 +1,23 @@
 import 'dart:io';
-import 'dart:typed_data';
 import 'dart:ui';
 
+import 'package:flutter/foundation.dart';
 import 'package:share_plus/share_plus.dart';
 
 import 'abstract_share_service.dart';
 
 const _tagline = 'I sent this from Imgo!';
 const _sharePositionOrigin = Rect.fromLTWH(0, 0, 1, 1);
+
+/// Builds share text from title, description, and tagline.
+@visibleForTesting
+String buildShareText({String? title, required String description}) {
+  final parts = <String>[];
+  if (title != null && title.isNotEmpty) parts.add(title);
+  if (description.isNotEmpty) parts.add(description);
+  parts.add(_tagline);
+  return parts.join('\n\n');
+}
 
 /// SharePlus-based implementation of [AbstractShareService].
 class ShareServiceImpl implements AbstractShareService {
@@ -19,11 +29,7 @@ class ShareServiceImpl implements AbstractShareService {
     List<int>? imageBytes,
     String? imageMimeType,
   }) async {
-    final parts = <String>[];
-    if (title != null && title.isNotEmpty) parts.add(title);
-    if (description.isNotEmpty) parts.add(description);
-    parts.add(_tagline);
-    final text = parts.join('\n\n');
+    final text = buildShareText(title: title, description: description);
 
     XFile? file;
     if (imagePath != null &&

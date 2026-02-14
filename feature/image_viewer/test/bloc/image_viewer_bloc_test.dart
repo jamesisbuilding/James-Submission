@@ -1,12 +1,10 @@
 import 'dart:async' show Completer, StreamSubscription, TimeoutException;
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:image_analysis_service/image_analysis_service.dart';
 import 'package:image_viewer/image_viewer.dart';
 import 'package:image_viewer/src/domain/exceptions/image_viewer_exceptions.dart';
-import 'package:image_viewer/src/domain/repositories/image_repository.dart';
 import 'package:mocktail/mocktail.dart';
 
 import 'image_viewer_bloc_test_utils.dart';

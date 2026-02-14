@@ -1,4 +1,3 @@
-import 'dart:typed_data';
 import 'dart:ui';
 
 import 'package:design_system/design_system.dart';
@@ -10,11 +9,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_analysis_service/image_analysis_service.dart';
 import 'package:image_viewer/image_viewer.dart';
 import 'package:image_viewer/src/view/widgets/alerts/custom_dialog.dart';
-import 'package:image_viewer/src/view/widgets/background/floating_collected_colors.dart';
 import 'package:image_viewer/src/view/widgets/background/image_viewer_background.dart';
 import 'package:image_viewer/src/view/widgets/control_bar/control_bar.dart';
 import 'package:image_viewer/src/view/widgets/image_carousel.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:image_viewer/src/view/widgets/loading/background_loading_indicator.dart';
 
 part 'carousel_scope.dart';
@@ -191,7 +188,6 @@ class _ImageViewerContentState extends State<_ImageViewerContent> {
                           );
                     }
                   },
-                  icon: const Icon(Icons.image_not_supported_outlined),
                 );
               },
               builder: (context, state) {

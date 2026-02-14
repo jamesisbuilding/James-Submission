@@ -1,6 +1,7 @@
 import 'dart:async' show TimeoutException;
 
 import 'package:design_system/design_system.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -83,13 +84,10 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
 
     expect(find.textContaining('timed out'), findsOneWidget);
-    expect(find.byType(AlertDialog), findsOneWidget);
+    expect(find.byType(CupertinoAlertDialog), findsOneWidget);
+    expect(find.text('OK'), findsOneWidget);
 
-    final okayButton = find.descendant(
-      of: find.byType(AlertDialog),
-      matching: find.byType(MainButton),
-    );
-    await tester.tap(okayButton);
+    await tester.tap(find.text('OK'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 500));
 

@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:design_system/design_system.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:image_analysis_service/image_analysis_service.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:flutter/material.dart';
@@ -357,7 +358,7 @@ void main() {
       );
 
       await expectLater(
-        find.byType(AlertDialog),
+        find.byKey(const Key('error_dialog')),
         matchesGoldenFile('golden/error_dialog.png'),
       );
     });
@@ -433,27 +434,55 @@ class _ErrorDialogContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      backgroundColor: Theme.of(context)
-          .colorScheme
-          .surface
-          .withValues(alpha: 0.9),
-      alignment: Alignment.center,
-      title: const Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.image_not_supported_outlined),
-        ],
-      ),
-      content: Text(message, textAlign: TextAlign.center),
-      actionsAlignment: MainAxisAlignment.center,
-      actions: [
-        MainButton(
-          onTap: () {},
-          label: 'Okay',
+    final isLight = Theme.of(context).brightness == Brightness.light;
+    // Inverted: light mode → dark popup; dark mode → light popup
+    final fillColor = isLight
+        ? Colors.white.withValues(alpha: 0.2)
+        : Colors.black.withValues(alpha: 0.5);
+    final borderColor = isLight
+        ? Colors.black.withValues(alpha: 0.2)
+        : Colors.white.withValues(alpha: 0.25);
+    final textColor = isLight ? Colors.black87 : Colors.white;
+
+    return Center(
+      key: const Key('error_dialog'),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 40),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(14),
+          child: Container(
+            decoration: BoxDecoration(
+              color: fillColor,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: borderColor,
+                width: 1.5,
+              ),
+            ),
+            padding: const EdgeInsets.fromLTRB(20, 24, 20, 12),
+            child: DefaultTextStyle(
+              style: CupertinoTheme.of(context)
+                  .textTheme
+                  .textStyle
+                  .copyWith(color: textColor),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: Text(message, textAlign: TextAlign.center),
+                  ),
+                  CupertinoButton(
+                    padding: EdgeInsets.zero,
+                    onPressed: () {},
+                    child: Text('OK', style: TextStyle(color: textColor)),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ),
-      ],
+      ),
     );
   }
 }

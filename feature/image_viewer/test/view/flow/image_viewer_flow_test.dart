@@ -1,15 +1,9 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
 import 'package:image_analysis_service/image_analysis_service.dart';
 import 'package:image_viewer/image_viewer.dart';
-import 'package:image_viewer/src/bloc/image_viewer_bloc.dart';
-import 'package:image_viewer/src/data/datasources/image_remote_datasource.dart';
-import 'package:image_viewer/src/data/repositories/image_repository_impl.dart';
-import 'package:image_viewer/src/domain/repositories/image_repository.dart';
 import 'package:tts_service/tts_service.dart';
 
 import '../../cubit/fakes/fake_tts_service.dart';

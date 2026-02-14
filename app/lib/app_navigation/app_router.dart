@@ -27,11 +27,13 @@ final GoRouter appRouter = GoRouter(
               onThemeToggle: onThemeToggle,
               onShareTap: (image, {screenshotBytes}) {
                 if (image != null) {
+                  final isScreenshot = screenshotBytes != null;
                   serviceLocator
                       .get<AbstractShareService>()
                       .shareImageWithDescription(
-                        description: image.description,
-                        title: image.title,
+                        description:
+                            isScreenshot ? '' : image.description,
+                        title: isScreenshot ? null : image.title,
                         imagePath: screenshotBytes != null
                             ? null
                             : (image.localPath.isNotEmpty

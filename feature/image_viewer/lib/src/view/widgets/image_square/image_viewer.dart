@@ -94,7 +94,7 @@ class _ImageViewerState extends State<ImageViewer> with AnimatedPressMixin {
               child: AspectRatio(
                 aspectRatio: 1,
                 child: GyroParallaxCard(
-                  enabled: widget.selected && !widget.disabled,
+                  enabled: (widget.selected && !widget.disabled) || widget.expanded,
                   child: ImageViewerSquare(
                     localPath: widget.image.localPath,
                     networkPath: widget.image.url,

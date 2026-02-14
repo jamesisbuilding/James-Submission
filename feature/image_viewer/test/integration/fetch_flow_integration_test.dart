@@ -3,10 +3,6 @@ import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:image_analysis_service/image_analysis_service.dart';
 import 'package:image_viewer/image_viewer.dart';
-import 'package:image_viewer/src/data/datasources/image_remote_datasource.dart';
-import 'package:image_viewer/src/data/repositories/image_repository_impl.dart';
-import 'package:image_viewer/src/domain/repositories/image_repository.dart';
-
 import '../data/fakes/fake_image_analysis_service.dart';
 import '../data/fakes/fake_image_remote_datasource.dart';
 
