@@ -7,7 +7,7 @@ Flutter coding-assessment project for Aurora.
 - **Shader-driven color interpolation** — GPU-accelerated linear interpolation of palettes across the carousel; background transitions driven by visible-image ratios.
 - **AI-augmented data** — LLM-powered titles and descriptions (ChatGPT/Gemini) for each image; accessibility-first storytelling.
 - **TTS with word highlighting** — ElevenLabs-backed text-to-speech; synchronized word highlighting for immersive playback.
-- **80.4% test coverage** — 103 tests across bloc, repository, datasource, cubits, DI, widget, integration, and golden suites.
+- **82.1% test coverage** — 107 tests across bloc, repository, datasource, cubits, DI, widget, integration, and golden suites.
 
 IMGO is a feed-based, luxury-travel inspiration app with:
 - intro video + seamless transition into an image carousel,
@@ -191,11 +191,11 @@ Eleven Labs (TTS) and LLM (ChatGPT/Gemini) could be made more robust – retries
 
 ## Testing
 
-**Test coverage summary** — **103 tests**, **80.4% line coverage** (`feature/image_viewer`)
+**Test coverage summary** — **107 tests**, **82.1% line coverage** (`feature/image_viewer`)
 
 | Suite | Tests | Path |
 |-------|-------|------|
-| ImageViewerBloc | 18 | `test/bloc/image_viewer_bloc_test.dart` |
+| ImageViewerBloc | 22 | `test/bloc/image_viewer_bloc_test.dart` |
 | Fetch flow integration | 4 | `test/integration/fetch_flow_integration_test.dart` |
 | ImageRepositoryImpl | 6 | `test/data/repositories/image_repository_impl_test.dart` |
 | ImageRemoteDatasource | 4 | `test/data/datasources/image_remote_datasource_test.dart` |
@@ -211,6 +211,7 @@ Eleven Labs (TTS) and LLM (ChatGPT/Gemini) could be made more robust – retries
 | BackgroundLoadingIndicator | 7 | `test/view/widgets/loading/background_loading_indicator_test.dart` |
 | FavouriteStarButton | 3 | `test/view/widgets/control_bar/favourite_star_button_test.dart` |
 | CustomDialog | 1 | `test/view/widgets/alerts/custom_dialog_test.dart` |
+| ErrorRetryFlow | 1 | `test/view/pages/error_retry_flow_test.dart` |
 | GyroParallaxCard | 5 | `test/view/widgets/gyro/gyro_parallax_card_test.dart` |
 | Golden (UI regression) | 10 | `test/golden/golden_test.dart` |
 
@@ -225,7 +226,7 @@ cd feature/image_viewer
 flutter test test/bloc/image_viewer_bloc_test.dart
 ```
 
-**Coverage (18 tests)**
+**Coverage (22 tests)**
 
 *Fetch + duplicate guard:*
 | Test | Covers |
@@ -234,9 +235,12 @@ flutter test test/bloc/image_viewer_bloc_test.dart
 | manual fetch while on last page appends and navigates path | Manual fetch on last page, append + select |
 | duplicate signatures are skipped via reservation guard | Duplicate handling via `tryReserveSignature` |
 | NoMoreImagesException only shows manual-mode errors | Manual-only error surfacing |
-| NoMoreImagesException during background fetch does NOT show error | Background fetch silently ignores |
+| NoMoreImagesException during background fetch with images does NOT show error | Background fetch with images silently ignores |
+| NoMoreImagesException during background fetch with NO visible images DOES show error | Initial/background load failure surfaces error |
 | TimeoutException only shows manual-mode errors | Manual-only error surfacing |
-| TimeoutException during background fetch does NOT show error | Background fetch silently ignores |
+| TimeoutException during background fetch with images does NOT show error | Background fetch with images silently ignores |
+| TimeoutException during background fetch with NO visible images DOES show error | Initial load timeout surfaces error |
+| generic error during background fetch with NO visible images DOES show error | Initial load failure surfaces error |
 | background fetch completion resets loading to none | Loading state reset on stream complete |
 
 *Fetch trigger behavior (manual, scrolling, Another button):*
@@ -455,6 +459,21 @@ flutter test test/view/widgets/control_bar/favourite_star_button_test.dart
 
 Uses `debugBuildCount` on `FavouriteStarButton` to instrument rebuilds.
 
+### Error-retry flow widget test
+
+When an error is emitted with no visible images (e.g. initial load failure), the dialog is shown and on dismiss a retry fetch is triggered:
+
+```bash
+cd feature/image_viewer
+flutter test test/view/pages/error_retry_flow_test.dart
+```
+
+**Coverage (1 test)**
+
+| Test | Covers |
+|------|--------|
+| error with no visible images: dialog shown, on dismiss retries fetch | Error dialog, retry on dismiss when `visibleImages.isEmpty` |
+
 ### GyroParallaxCard widget tests
 
 Gyroscope parallax on the selected image card (iOS/Android):
@@ -485,7 +504,7 @@ flutter test
 # image_viewer package only
 cd feature/image_viewer && flutter test
 
-# with coverage (80.4% line coverage)
+# with coverage (82.1% line coverage)
 cd feature/image_viewer && flutter test --coverage
 ```
 
