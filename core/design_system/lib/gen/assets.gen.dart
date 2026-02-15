@@ -26,6 +26,23 @@ class $AssetsFontsGen {
   List<String> get values => [ralewayRegular, yesevaOneRegular];
 }
 
+class $AssetsGifsGen {
+  const $AssetsGifsGen();
+
+  /// File path: assets/gifs/arrow_down.gif
+  AssetGenImage get arrowDown =>
+      const AssetGenImage('assets/gifs/arrow_down.gif');
+
+  /// File path: assets/gifs/swipe.gif
+  AssetGenImage get swipe => const AssetGenImage('assets/gifs/swipe.gif');
+
+  /// File path: assets/gifs/touch.gif
+  AssetGenImage get touch => const AssetGenImage('assets/gifs/touch.gif');
+
+  /// List of all assets
+  List<AssetGenImage> get values => [arrowDown, swipe, touch];
+}
+
 class $AssetsIconsGen {
   const $AssetsIconsGen();
 
@@ -72,6 +89,7 @@ class Assets {
   static const String package = 'design_system';
 
   static const $AssetsFontsGen fonts = $AssetsFontsGen();
+  static const $AssetsGifsGen gifs = $AssetsGifsGen();
   static const $AssetsIconsGen icons = $AssetsIconsGen();
   static const $AssetsVideoGen video = $AssetsVideoGen();
 }

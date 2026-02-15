@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:delayed_display/delayed_display.dart';
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
@@ -19,6 +21,7 @@ class ImageViewer extends StatefulWidget {
     this.onTap,
     required this.disabled,
     required this.expanded,
+    this.hasEverExpanded = false,
   });
 
   final ImageModel image;
@@ -29,28 +32,57 @@ class ImageViewer extends StatefulWidget {
   final bool disabled;
   final bool expanded;
 
+  /// When false, the touch hint can show after 3s idle on the selected image.
+  final bool hasEverExpanded;
+
   @override
   State<ImageViewer> createState() => _ImageViewerState();
 }
 
+const _touchHintIdleDuration = Duration(seconds: 3);
+
 class _ImageViewerState extends State<ImageViewer> with AnimatedPressMixin {
   bool _colorsExpanded = false;
   late final ScrollController _scrollController;
+  Timer? _touchHintTimer;
+  bool _showTouchHint = false;
 
   @override
   void initState() {
     super.initState();
     _scrollController = ScrollController();
+    _scheduleTouchHintIfNeeded();
   }
 
   @override
   void dispose() {
+    _cancelTouchHint();
     _scrollController.dispose();
     super.dispose();
   }
 
+  bool get _shouldShowTouchHint =>
+      widget.selected && !widget.expanded && !widget.hasEverExpanded;
+
+  void _scheduleTouchHintIfNeeded() {
+    _cancelTouchHint();
+    if (!_shouldShowTouchHint) return;
+    _touchHintTimer = Timer(_touchHintIdleDuration, () {
+      if (mounted && _shouldShowTouchHint) {
+        setState(() => _showTouchHint = true);
+      }
+    });
+  }
+
+  void _cancelTouchHint() {
+    _touchHintTimer?.cancel();
+    _touchHintTimer = null;
+    if (_showTouchHint) setState(() => _showTouchHint = false);
+  }
+
   @override
   void onPressComplete() {
+    _cancelTouchHint();
     if (_colorsExpanded) {
       return;
     }
@@ -59,10 +91,16 @@ class _ImageViewerState extends State<ImageViewer> with AnimatedPressMixin {
   }
 
   @override
-  void didUpdateWidget(oldWidget) {
+  void didUpdateWidget(covariant ImageViewer oldWidget) {
     super.didUpdateWidget(oldWidget);
-
-    if (oldWidget.selected != widget.selected) {
+    if (oldWidget.selected != widget.selected ||
+        oldWidget.expanded != widget.expanded ||
+        oldWidget.hasEverExpanded != widget.hasEverExpanded) {
+      if (_shouldShowTouchHint) {
+        _scheduleTouchHintIfNeeded();
+      } else {
+        _cancelTouchHint();
+      }
       setState(noop);
     }
   }
@@ -110,16 +148,35 @@ class _ImageViewerState extends State<ImageViewer> with AnimatedPressMixin {
                 padding: const EdgeInsets.all(20.0),
                 child: AspectRatio(
                   aspectRatio: 1,
-                  child: GyroParallaxCard(
-                    enabled:
-                        (widget.selected && !widget.disabled) ||
-                        widget.expanded,
-                    child: ImageViewerSquare(
-                      localPath: widget.image.localPath,
-                      networkPath: widget.image.url,
-                      imageUid: widget.image.uid,
-                      lightestColor: widget.image.lightestColor,
-                    ),
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      GyroParallaxCard(
+                        enabled:
+                            (widget.selected && !widget.disabled) ||
+                            widget.expanded,
+                        child: ImageViewerSquare(
+                          localPath: widget.image.localPath,
+                          networkPath: widget.image.url,
+                          imageUid: widget.image.uid,
+                          lightestColor: widget.image.lightestColor,
+                        ),
+                      ),
+                      if (_showTouchHint)
+                        Positioned.fill(
+                          child: Opacity(
+                            opacity: 0.3,
+                            child: Padding(
+                              padding: const EdgeInsets.all(100.0),
+                              child: IgnorePointer(
+                                child: Center(
+                                  child: Assets.gifs.touch.designImage(),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                 ),
               ),

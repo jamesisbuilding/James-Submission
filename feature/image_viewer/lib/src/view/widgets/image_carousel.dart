@@ -43,6 +43,7 @@ class _ImageCarouselState extends State<ImageCarousel> {
   late PageController _pageController;
   bool _ownsController = false;
   String _expandedID = '';
+  bool _hasEverExpanded = false;
   int? _lastPageIndex;
   final Set<int> _seenIndices = {};
 
@@ -128,6 +129,7 @@ class _ImageCarouselState extends State<ImageCarousel> {
     if (selected) {
       setState(() {
         _expandedID = imageUID;
+        _hasEverExpanded = true;
       });
     } else {
       setState(() {
@@ -193,6 +195,7 @@ class _ImageCarouselState extends State<ImageCarousel> {
                           expanded:
                               _expandedID == image.uid &&
                               image.uid == widget.selectedID,
+                          hasEverExpanded: _hasEverExpanded,
                           onTap: (selected) => _toggleExpanded(
                             selected: selected,
                             imageUID: image.uid,

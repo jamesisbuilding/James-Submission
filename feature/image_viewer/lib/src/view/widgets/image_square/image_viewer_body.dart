@@ -1,3 +1,6 @@
+import 'package:delayed_display/delayed_display.dart';
+import 'package:design_system/design_system.dart';
+import 'package:design_system/gen/assets.gen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_analysis_service/image_analysis_service.dart';
@@ -167,6 +170,9 @@ class _ImageViewerBodyState extends State<ImageViewerBody> {
           duration: const Duration(milliseconds: 250),
           child: titleWidget,
         ),
+        DelayedDisplay(
+          delay: const Duration(seconds: 1),
+          child: Assets.gifs.arrowDown.designImage(height: 40, width: 40, color: Theme.of(context).colorScheme.onSurface)),
         AnimatedOpacity(
           opacity: widget.visible ? 1 : 0,
           duration: const Duration(milliseconds: 250),

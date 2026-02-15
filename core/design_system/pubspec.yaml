@@ -35,6 +35,7 @@ flutter:
     - assets/icons/
     - assets/video/
     - assets/fonts/
+    - assets/gifs/
 
   fonts:
     - family: YesevaOne

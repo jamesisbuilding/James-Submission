@@ -128,7 +128,7 @@ The app is best optimized for iPhone 17 Pro. Although it should run on other dev
 ### UI
 11. Expansion mode – expand the image to see title, description and colour palette. **Collected colours:** tap "Collect Colors" in the palette view to save the image’s palette; a top-left button (three overlapping circles) appears once colours are collected, opens a glassmorphic bottom sheet with DraggableNotch, no border, transparent barrier. Button is hidden when no colours collected. State persists via CollectedColorsCubit
 12. Linear interpolation between colors – as the carousel moves the background palette changes with respect to the ratio of which image is primarily visible
-13. Expandable image cards – tap an image to expand and see the full title and description, with the play button for TTS
+13. Expandable image cards – tap an image to expand and see the full title and description, with the play button for TTS. **Tap affordance:** on the selected image, if the user has never expanded any card, a touch hint (animated gif) appears after 3 seconds of inactivity to indicate that tapping reveals the description; any tap or expand dismisses it and it does not show again once the user has expanded at least once.
 14. **Gyroscope parallax** – the selected image card responds to device gyroscope on iPhone: tilt the device to see a subtle 3D parallax effect on the centred card (iOS/Android only)
 15. Accessibility – interfaces with Eleven Labs API to read out the short story/description of the image and have highlighted text on each word. 
 16. Favourite and Share – users can favourite and share images. Share has two modes: collapsed shares the raw image and description; expanded mode captures a screenshot of the carousel (excluding the control bar)
@@ -152,6 +152,7 @@ The app is best optimized for iPhone 17 Pro. Although it should run on other dev
 | **Descriptive content** | Each image has LLM-generated title and description for context (supports screen reader announcements) |
 | **Haptic feedback** | Light/heavy haptics on key interactions (buttons, dialogs, sheet) for non-visual feedback |
 | **Touch targets** | Main button and control bar elements meet Material Design 48dp minimum tap area guidance |
+| **Tap affordance** | Touch hint on selected image (after 3s idle, first-time users) indicates that tapping expands to view title and description |
 
 ### Architecture
 
