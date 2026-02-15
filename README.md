@@ -142,6 +142,16 @@ The app is best optimized for iPhone 17 Pro. Although it should run on other dev
 19. Control bar – collapsible and updates to changes in selected image colors. Background loading indicator sits 8px above the right edge of the control bar and moves with expand/collapse. Hidden/collapsed until the first image arrives, then reveals and pops up to expanded.
 20. Error dialogs – glassmorphic, theme-inverted popups (dark in light mode, light in dark mode) surface fetch failures and duplicate exhaustion; retry on dismiss when no images visible
 
+### Accessibility
+
+| Feature | Implementation |
+|--------|----------------|
+| **Color contrast** | WCAG AAA 7:1 minimum on main button; `ImageModel.lightestColor` / `darkestColor` enforce contrast between foreground and dynamic palette background |
+| **Light/dark mode** | User-selectable theme toggle; all UI adapts to system/app preference |
+| **Text-to-speech** | ElevenLabs TTS reads AI-generated title and description; synchronized word highlighting during playback |
+| **Descriptive content** | Each image has LLM-generated title and description for context (supports screen reader announcements) |
+| **Haptic feedback** | Light/heavy haptics on key interactions (buttons, dialogs, sheet) for non-visual feedback |
+| **Touch targets** | Main button and control bar elements meet Material Design 48dp minimum tap area guidance |
 
 ### Architecture
 
