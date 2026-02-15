@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_analysis_service/image_analysis_service.dart';
 import 'package:image_viewer/image_viewer.dart';
+import 'package:utils/utils.dart';
 
 class ControlBarMainButton extends StatefulWidget {
   const ControlBarMainButton({
@@ -31,7 +32,7 @@ class _ControlBarMainButtonState extends State<ControlBarMainButton> {
   void didUpdateWidget(covariant ControlBarMainButton oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.carouselExpanded != widget.carouselExpanded) {
-      setState(() {});
+      setState(noop);
     }
   }
 
@@ -76,22 +77,36 @@ class _ControlBarMainButtonState extends State<ControlBarMainButton> {
           final backgroundImageUrl = nextImageForBackground?.url;
 
           return BlocBuilder<TtsCubit, TtsState>(
-            builder: (context, ttsState) => MainButton(
-              label: 'another',
-              backgroundColor: bgColor,
-              foregroundColor: fgColor,
-              backgroundImageUrl: backgroundImageUrl,
-              onTap: () => widget.onAnotherTap(),
-              mode: state.loadingType == ViewerLoadingType.manual
-                  ? MainButtonMode.audio
-                  : widget.mode,
-              onPlayTapped: (playing) => widget.onPlayTapped(playing),
-              isPlaying: ttsState.isPlaying,
-              isLoading:
-                  (state.loadingType == ViewerLoadingType.manual &&
+            buildWhen: (prev, curr) =>
+                prev.isLoading != curr.isLoading ||
+                prev.isPlaying != curr.isPlaying,
+            builder: (context, ttsState) {
+              final isLoading = (state.loadingType == ViewerLoadingType.manual &&
                       !widget.carouselExpanded) ||
-                  ttsState.isLoading,
-            ),
+                  ttsState.isLoading;
+              return MainButton(
+                label: 'ANOTHER',
+                backgroundColor: bgColor,
+                foregroundColor: fgColor,
+                backgroundImageUrl: backgroundImageUrl,
+                onTap: () => widget.onAnotherTap(),
+                onLoadingTap: isLoading
+                    ? () {
+                        if (ttsState.isLoading) {
+                          context.read<TtsCubit>().stop();
+                        } else if (state.loadingType == ViewerLoadingType.manual) {
+                          context.read<ImageViewerBloc>().add(const FetchCancelled());
+                        }
+                      }
+                    : null,
+                mode: state.loadingType == ViewerLoadingType.manual
+                    ? MainButtonMode.audio
+                    : widget.mode,
+                onPlayTapped: (playing) => widget.onPlayTapped(playing),
+                isPlaying: ttsState.isPlaying,
+                isLoading: isLoading,
+              );
+            },
           );
         },
       ),

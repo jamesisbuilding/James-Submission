@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:utils/utils.dart';
 import 'package:image_analysis_service/src/domain/models/image_model.dart';
 import 'package:image_viewer/src/view/widgets/image_square/image_viewer.dart';
 
@@ -73,7 +75,7 @@ class _ImageCarouselState extends State<ImageCarousel> {
       _expandedID = '';
     }
     _lastPageIndex = page;
-    setState(() {});
+    setState(noop);
   }
 
   @override
@@ -135,11 +137,11 @@ class _ImageCarouselState extends State<ImageCarousel> {
     final isLightMode = Theme.of(context).brightness == Brightness.light;
     final bool expanded = _expandedID.isNotEmpty;
 
-
     if (!expanded) return Colors.transparent;
 
-    final selected =
-        widget.images.where((i) => i.uid == widget.selectedID).firstOrNull;
+    final selected = widget.images
+        .where((i) => i.uid == widget.selectedID)
+        .firstOrNull;
     if (selected == null) return Colors.transparent;
 
     return isLightMode ? selected.lightestColor : selected.darkestColor;
@@ -160,7 +162,10 @@ class _ImageCarouselState extends State<ImageCarousel> {
 
         padEnds: true,
         itemCount: widget.images.length,
-        onPageChanged: _onPageChange,
+        onPageChanged: (index) {
+          HapticFeedback.lightImpact();
+          _onPageChange(index);
+        },
         itemBuilder: (context, index) {
           final image = widget.images[index];
           final seen = _seenIndices.contains(index);

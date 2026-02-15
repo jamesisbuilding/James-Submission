@@ -194,7 +194,7 @@ class _ImageViewerContentState extends State<_ImageViewerContent> {
               },
             ),
           ),
-          if (kDebugMode) const BlocStateDebugOverlay(),
+          // if (kDebugMode) const BlocStateDebugOverlay(),
         ],
       ),
     );

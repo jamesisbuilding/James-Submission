@@ -1,6 +1,7 @@
 // coverage:ignore-file
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
+import 'package:utils/utils.dart';
 import 'package:video_player/video_player.dart';
 
 /// Plays the intro video asset from [Assets.video.intro].
@@ -36,7 +37,7 @@ class _VideoViewState extends State<VideoView> {
     super.initState();
     _controller = VideoPlayerController.asset(Assets.video.intro)
       ..initialize().then((_) {
-        setState(() {});
+        setState(noop);
         _controller.play();
         _controller.addListener(_checkCompletion);
       });

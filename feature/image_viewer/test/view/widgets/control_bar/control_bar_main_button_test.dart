@@ -1,10 +1,14 @@
+import 'dart:async';
+
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:image_analysis_service/image_analysis_service.dart';
 import 'package:image_viewer/image_viewer.dart';
 import 'package:image_viewer/src/view/widgets/control_bar/control_bar_main_button.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:utils/utils.dart';
 
 import '../../../bloc/image_viewer_bloc_test_utils.dart';
 import '../../../cubit/fakes/fake_tts_service.dart';
@@ -63,7 +67,7 @@ void main() {
       await tester.pumpWidget(
         buildTestHarness(
           child: ControlBarMainButton(
-            onAnotherTap: () {},
+            onAnotherTap: noop,
             mode: MainButtonMode.another,
             onPlayTapped: (_) {},
             carouselExpanded: false,
@@ -91,7 +95,7 @@ void main() {
       await tester.pumpWidget(
         buildTestHarness(
           child: ControlBarMainButton(
-            onAnotherTap: () {},
+            onAnotherTap: noop,
             mode: MainButtonMode.another,
             onPlayTapped: (_) {},
             carouselExpanded: false,
@@ -119,7 +123,7 @@ void main() {
       await tester.pumpWidget(
         buildTestHarness(
           child: ControlBarMainButton(
-            onAnotherTap: () {},
+            onAnotherTap: noop,
             mode: MainButtonMode.audio,
             onPlayTapped: (_) {},
             carouselExpanded: true,
@@ -146,7 +150,7 @@ void main() {
       await tester.pumpWidget(
         buildTestHarness(
           child: ControlBarMainButton(
-            onAnotherTap: () {},
+            onAnotherTap: noop,
             mode: MainButtonMode.another,
             onPlayTapped: (_) {},
             carouselExpanded: false,
@@ -172,7 +176,7 @@ void main() {
       await tester.pumpWidget(
         buildTestHarness(
           child: ControlBarMainButton(
-            onAnotherTap: () {},
+            onAnotherTap: noop,
             mode: MainButtonMode.another,
             onPlayTapped: (_) {},
             carouselExpanded: false,
@@ -199,7 +203,7 @@ void main() {
       await tester.pumpWidget(
         buildTestHarness(
           child: ControlBarMainButton(
-            onAnotherTap: () {},
+            onAnotherTap: noop,
             mode: MainButtonMode.another,
             onPlayTapped: (_) {},
             carouselExpanded: false,
@@ -212,6 +216,89 @@ void main() {
       final mainButton = tester.widget<MainButton>(find.byType(MainButton));
       expect(mainButton.backgroundColor, isNotNull);
       expect(mainButton.foregroundColor, isNotNull);
+    });
+  });
+
+  group('Button loading cancel', () {
+    testWidgets('tap during TTS loading calls TtsCubit.stop and clears loading',
+        (tester) async {
+      fakeTtsService.delayPlayReturn = true;
+      fakeTtsService.completeImmediately = false;
+
+      imageViewerBloc.emit(ImageViewerState(
+        visibleImages: [testImage('uid1', 'sig1')],
+        fetchedImages: [],
+        selectedImage: testImage('uid1', 'sig1'),
+        loadingType: ViewerLoadingType.none,
+      ));
+
+      await tester.pumpWidget(
+        buildTestHarness(
+          child: ControlBarMainButton(
+            onAnotherTap: noop,
+            mode: MainButtonMode.audio,
+            onPlayTapped: (_) {},
+            carouselExpanded: true,
+          ),
+        ),
+      );
+
+      ttsCubit.play('Title', 'Description');
+      await tester.pump(const Duration(milliseconds: 100));
+
+      expect(ttsCubit.state.isLoading, true);
+
+      await tester.tap(find.byType(MainButton));
+      await tester.pump(const Duration(milliseconds: 50));
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(ttsCubit.state.isLoading, false);
+      expect(ttsCubit.state.isPlaying, false);
+
+      fakeTtsService.completePlayReturn();
+      await tester.pump(const Duration(milliseconds: 50));
+    });
+
+    testWidgets('tap during manual fetch dispatches FetchCancelled and clears loading',
+        (tester) async {
+      final neverCompleting = StreamController<ImageModel>();
+      when(() => mockRepo.runImageRetrieval(
+            count: any(named: 'count'),
+            existingImages: any(named: 'existingImages'),
+          )).thenAnswer((_) => neverCompleting.stream);
+
+      imageViewerBloc = ImageViewerBloc(imageRepository: mockRepo);
+      imageViewerBloc.emit(ImageViewerState(
+        visibleImages: [testImage('uid1', 'sig1')],
+        fetchedImages: [],
+        selectedImage: testImage('uid1', 'sig1'),
+        loadingType: ViewerLoadingType.none,
+      ));
+
+      await tester.pumpWidget(
+        buildTestHarness(
+          child: ControlBarMainButton(
+            onAnotherTap: noop,
+            mode: MainButtonMode.another,
+            onPlayTapped: (_) {},
+            carouselExpanded: false,
+          ),
+        ),
+      );
+
+      imageViewerBloc.add(const ImageViewerFetchRequested(
+        count: 1,
+        loadingType: ViewerLoadingType.manual,
+      ));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+
+      expect(imageViewerBloc.state.loadingType, ViewerLoadingType.manual);
+
+      await tester.tap(find.byType(MainButton));
+      await tester.pump(const Duration(milliseconds: 400));
+
+      expect(imageViewerBloc.state.loadingType, ViewerLoadingType.none);
     });
   });
 }

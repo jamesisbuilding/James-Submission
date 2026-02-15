@@ -18,6 +18,8 @@ dependencies:
   envied: ^0.5.4+1
   design_system:
     path: ../core/design_system
+  utils:
+    path: ../core/utils
   go_router: ^17.1.0
   get_it: ^8.0.3
   flutter_bloc: ^9.0.0

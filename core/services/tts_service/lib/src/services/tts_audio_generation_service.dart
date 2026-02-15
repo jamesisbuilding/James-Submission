@@ -66,7 +66,9 @@ class TtsAudioGenerationService implements AbstractTtsService {
   Future<void> playTextToSpeech(
     String title,
     String description, {
-    void Function()? onPlaybackComplete,
+    VoidCallback? onPlaybackComplete,
+    Future<void>? cancelWhen,
+    bool Function()? isCancelled,
   }) async {
     if (!_initialized) await initialize();
     if (_isSpeaking) await stop();
@@ -77,6 +79,8 @@ class TtsAudioGenerationService implements AbstractTtsService {
       _isSpeaking = false;
       return;
     }
+    final cancelToken = CancelToken();
+    cancelWhen?.then((_) => cancelToken.cancel());
     try {
       final url =
           'https://api.elevenlabs.io/v1/text-to-speech/$_voiceId/with-timestamps';
@@ -98,6 +102,7 @@ class TtsAudioGenerationService implements AbstractTtsService {
             'Content-Type': 'application/json',
           },
         ),
+        cancelToken: cancelToken,
       );
 
       if (response.statusCode == 200) {
@@ -159,14 +164,25 @@ class TtsAudioGenerationService implements AbstractTtsService {
           });
         }
 
+        if (isCancelled?.call() ?? false) return;
         await player.setAudioSource(MyCustomSource(bytes));
-        // Don't await play() - it completes when playback *ends*, not when it starts
+        if (isCancelled?.call() ?? false) return;
         player.play();
       } else {
         throw Exception(
           'Failed to load audio: ${response.statusCode} ${response.data}',
         );
       }
+    } on DioException catch (e, st) {
+      if (e.type == DioExceptionType.cancel) {
+        return;
+      }
+      await _completionSubscription?.cancel();
+      await _positionSubscription?.cancel();
+      _completionSubscription = null;
+      _positionSubscription = null;
+      if (kDebugMode) debugPrint('[TTS] Error: $e\n$st');
+      rethrow;
     } catch (e, st) {
       await _completionSubscription?.cancel();
       await _positionSubscription?.cancel();

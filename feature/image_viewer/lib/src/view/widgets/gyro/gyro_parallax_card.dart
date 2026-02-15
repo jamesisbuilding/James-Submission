@@ -113,12 +113,11 @@ class _GyroParallaxCardState extends State<GyroParallaxCard> {
     // Assuming ~60fps, dt ≈ 0.016s
     const dt = 0.016;
 
-    // Map gyroscope axes to tilt angles
+    // Map gyroscope axes to tilt angles (inverted: card moves opposite to device)
     // e.x = rotation around X axis (pitch forward/back)
     // e.y = rotation around Y axis (roll left/right)
-    // Invert as needed for natural feel
-    _targetX += -e.y * sens * dt; // Controls Y-axis rotation
-    _targetY += e.x * sens * dt; // Controls X-axis rotation
+    _targetX += e.y * sens * dt; // Controls Y-axis rotation
+    _targetY += -e.x * sens * dt; // Controls X-axis rotation
 
     // Clamp targets
     _targetX = _targetX.clamp(-maxRad, maxRad);

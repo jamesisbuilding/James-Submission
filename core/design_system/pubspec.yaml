@@ -34,6 +34,15 @@ flutter:
   assets:
     - assets/icons/
     - assets/video/
+    - assets/fonts/
+
+  fonts:
+    - family: YesevaOne
+      fonts:
+        - asset: assets/fonts/YesevaOne-Regular.ttf
+    - family: Raleway
+      fonts:
+        - asset: assets/fonts/Raleway-Regular.ttf
 
 flutter_gen:
   output: lib/gen/

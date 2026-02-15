@@ -1,4 +1,4 @@
-import 'dart:async' show Completer, StreamSubscription, TimeoutException;
+import 'dart:async' show Completer, StreamSubscription, TimeoutException, StreamController;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -473,6 +473,39 @@ void main() {
             existingImages: any(named: 'existingImages'),
           )).called(1);
       expect(states.last.loadingType, ViewerLoadingType.none);
+      bloc.close();
+    });
+  });
+
+  group('FetchCancelled', () {
+    test('FetchCancelled during manual fetch cancels subscription and sets loadingType to none',
+        () async {
+      final neverCompleting = StreamController<ImageModel>();
+      when(() => mockRepository.runImageRetrieval(
+            count: any(named: 'count'),
+            existingImages: any(named: 'existingImages'),
+          )).thenAnswer((_) => neverCompleting.stream);
+
+      bloc = ImageViewerBloc(imageRepository: mockRepository);
+      bloc.emit(ImageViewerState(
+        visibleImages: [_image('uid1', 'sig1')],
+        fetchedImages: [],
+        selectedImage: _image('uid1', 'sig1'),
+        loadingType: ViewerLoadingType.none,
+      ));
+
+      bloc.add(const ImageViewerFetchRequested(
+        count: 1,
+        loadingType: ViewerLoadingType.manual,
+      ));
+      await Future<void>.delayed(Duration.zero);
+
+      expect(bloc.state.loadingType, ViewerLoadingType.manual);
+
+      bloc.add(const FetchCancelled());
+      await Future<void>.delayed(Duration.zero);
+
+      expect(bloc.state.loadingType, ViewerLoadingType.none);
       bloc.close();
     });
   });

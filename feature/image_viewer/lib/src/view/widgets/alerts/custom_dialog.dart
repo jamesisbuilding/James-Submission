@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 void showCustomDialog({
   required BuildContext context,
@@ -9,6 +10,7 @@ void showCustomDialog({
   required VoidCallback onDismiss,
 }) {
   WidgetsBinding.instance.addPostFrameCallback((_) {
+    HapticFeedback.heavyImpact();
     showGeneralDialog(
       barrierDismissible: false,
       barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
@@ -77,7 +79,11 @@ class _GlassmorphicDialog extends StatelessWidget {
                 style: CupertinoTheme.of(context)
                     .textTheme
                     .textStyle
-                    .copyWith(color: textColor),
+                    .copyWith(
+                      color: textColor,
+                      fontFamily: 'Raleway',
+                      package: 'design_system',
+                    ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -92,6 +98,7 @@ class _GlassmorphicDialog extends StatelessWidget {
                     CupertinoButton(
                       padding: EdgeInsets.zero,
                       onPressed: () {
+                        HapticFeedback.lightImpact();
                         Navigator.of(context).pop();
                         onDismiss();
                       },

@@ -25,6 +25,9 @@ class FavouriteStarButton extends StatelessWidget {
       builder: (context, favourites) {
         debugBuildCount?.value = (debugBuildCount?.value ?? 0) + 1;
         final isFavourite = uid.isNotEmpty && favourites.contains(uid);
+        final favouriteColor = theme.brightness == Brightness.light
+            ? Colors.amber.shade800
+            : Colors.yellow;
         return CustomIconButton(
           onTap: () {
             if (uid.isNotEmpty) {
@@ -34,8 +37,7 @@ class FavouriteStarButton extends StatelessWidget {
           icon: Assets.icons.star.designImage(
             height: 28,
             width: 28,
-            color:
-                isFavourite ? Colors.yellow : theme.colorScheme.onSurface,
+            color: isFavourite ? favouriteColor : theme.colorScheme.onSurface,
           ),
         );
       },

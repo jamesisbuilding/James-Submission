@@ -1,6 +1,7 @@
 import 'package:delayed_display/delayed_display.dart';
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
+import 'package:utils/utils.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_analysis_service/image_analysis_service.dart';
 import 'package:image_viewer/src/cubit/cubit.dart';
@@ -34,13 +35,27 @@ class ImageViewer extends StatefulWidget {
 
 class _ImageViewerState extends State<ImageViewer> with AnimatedPressMixin {
   bool _colorsExpanded = false;
+  late final ScrollController _scrollController;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = ScrollController();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
   @override
   void onPressComplete() {
     if (_colorsExpanded) {
       return;
     }
     widget.onTap?.call(!widget.disabled);
-    setState(() {});
+    setState(noop);
   }
 
   @override
@@ -48,7 +63,7 @@ class _ImageViewerState extends State<ImageViewer> with AnimatedPressMixin {
     super.didUpdateWidget(oldWidget);
 
     if (oldWidget.selected != widget.selected) {
-      setState(() {});
+      setState(noop);
     }
   }
 
@@ -61,7 +76,7 @@ class _ImageViewerState extends State<ImageViewer> with AnimatedPressMixin {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      top: true,
+      top: false,
       bottom: false,
       child: AnimatedOpacity(
         opacity: !widget.selected && widget.disabled ? 0 : 1,
@@ -69,9 +84,9 @@ class _ImageViewerState extends State<ImageViewer> with AnimatedPressMixin {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 250),
 
-          height: widget.expanded ? MediaQuery.sizeOf(context).height : 400,
+          height: widget.expanded ? MediaQuery.sizeOf(context).height : 500,
           child: SingleChildScrollView(
-            physics: const NeverScrollableScrollPhysics(),
+            controller: _scrollController,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: _buildContent(),
@@ -85,21 +100,25 @@ class _ImageViewerState extends State<ImageViewer> with AnimatedPressMixin {
   List<Widget> _buildContent() {
     return [
       buildPressable(
-        child: AnimatedOpacity(
-          opacity: _colorsExpanded ? 0 : 1,
-          duration: const Duration(milliseconds: 250),
-          child: DelayedDisplay(
-            child: Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: AspectRatio(
-                aspectRatio: 1,
-                child: GyroParallaxCard(
-                  enabled: (widget.selected && !widget.disabled) || widget.expanded,
-                  child: ImageViewerSquare(
-                    localPath: widget.image.localPath,
-                    networkPath: widget.image.url,
-                    imageUid: widget.image.uid,
-                    lightestColor: widget.image.lightestColor,
+        child: SafeArea(
+          child: AnimatedOpacity(
+            opacity: _colorsExpanded ? 0 : 1,
+            duration: const Duration(milliseconds: 250),
+            child: DelayedDisplay(
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: AspectRatio(
+                  aspectRatio: 1,
+                  child: GyroParallaxCard(
+                    enabled:
+                        (widget.selected && !widget.disabled) ||
+                        widget.expanded,
+                    child: ImageViewerSquare(
+                      localPath: widget.image.localPath,
+                      networkPath: widget.image.url,
+                      imageUid: widget.image.uid,
+                      lightestColor: widget.image.lightestColor,
+                    ),
                   ),
                 ),
               ),
@@ -113,8 +132,8 @@ class _ImageViewerState extends State<ImageViewer> with AnimatedPressMixin {
           builder: (context, ttsState) => ImageViewerBody(
             image: widget.image,
             currentWord: ttsState.currentWord,
-
             visible: !_colorsExpanded,
+            scrollController: _scrollController,
             onColorsExpanded: (colorsExpanded) =>
                 _toggleColorsExpanded(value: colorsExpanded),
           ),

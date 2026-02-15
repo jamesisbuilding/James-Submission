@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:utils/utils.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
@@ -67,7 +68,7 @@ void main() {
     return MaterialApp(
       home: ImageViewerFlow(
         getIt: testGetIt,
-        onThemeToggle: () {},
+        onThemeToggle: noop,
         bottomLayer: useOrchestrationLayer
             ? BlocBuilder<ImageViewerBloc, ImageViewerState>(
                 builder: (context, state) {

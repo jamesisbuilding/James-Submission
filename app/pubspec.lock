@@ -1192,6 +1192,13 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.1.5"
+  utils:
+    dependency: "direct main"
+    description:
+      path: "../core/utils"
+      relative: true
+    source: path
+    version: "1.0.0+1"
   uuid:
     dependency: transitive
     description:

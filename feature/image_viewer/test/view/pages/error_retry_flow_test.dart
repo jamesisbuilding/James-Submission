@@ -67,7 +67,7 @@ void main() {
             BlocProvider(create: (_) => FavouritesCubit()),
             BlocProvider(create: (_) => CollectedColorsCubit()),
           ],
-          child: ImageViewerScreen(onThemeToggle: () {}),
+          child: ImageViewerScreen(onThemeToggle: noop),
         ),
       ),
     );

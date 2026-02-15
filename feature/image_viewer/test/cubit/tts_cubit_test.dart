@@ -91,6 +91,32 @@ void main() {
       expect(cubit.state.isPlaying, false);
       expect(cubit.state.currentWord, isNull);
     });
+
+    test('stop() during loading prevents isPlaying from ever being emitted',
+        () async {
+      fakeTtsService.delayPlayReturn = true;
+      fakeTtsService.completeImmediately = false;
+
+      final states = <TtsState>[];
+      final sub = cubit.stream.listen(states.add);
+
+      unawaited(cubit.play('Title', 'Description'));
+      await Future<void>.delayed(Duration.zero);
+
+      expect(states.last.isLoading, true);
+      expect(states.any((s) => s.isPlaying), false);
+
+      await cubit.stop();
+
+      fakeTtsService.completePlayReturn();
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      sub.cancel();
+
+      expect(cubit.state.isLoading, false);
+      expect(cubit.state.isPlaying, false);
+      expect(states.any((s) => s.isPlaying), false);
+    });
   });
 
   group('TTS happy + failure path', () {

@@ -21,6 +21,11 @@ final class AnotherImageEvent extends ImageViewerEvent {
   const AnotherImageEvent();
 }
 
+/// Cancels an in-flight image fetch (manual or background).
+final class FetchCancelled extends ImageViewerEvent {
+  const FetchCancelled();
+}
+
 final class ErrorDismissed extends ImageViewerEvent {
   const ErrorDismissed();
 }

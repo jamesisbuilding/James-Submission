@@ -210,6 +210,11 @@ class CarouselControllerScopeState extends State<CarouselControllerScope> {
           right: 16,
           child: ThemeSwitch(onThemeToggle: widget.onThemeToggle),
         ),
+        Positioned(
+          top: MediaQuery.paddingOf(context).top + 8,
+          left: 16,
+          child: const CollectedColorsButton(),
+        ),
       ],
     );
   }

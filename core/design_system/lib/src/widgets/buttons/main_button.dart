@@ -3,7 +3,7 @@ import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 
 enum MainButtonMode {
-  another(height: 50, width: 120),
+  another(height: 50, width: 160),
   audio(height: 50, width: 50);
 
   const MainButtonMode({required this.width, required this.height});
@@ -19,6 +19,7 @@ enum MainButtonMode {
 class MainButton extends StatefulWidget {
   final String label;
   final VoidCallback onTap;
+  final VoidCallback? onLoadingTap;
   final Function(bool)? onPlayTapped;
   final Color? backgroundColor;
   final Color? foregroundColor;
@@ -37,6 +38,7 @@ class MainButton extends StatefulWidget {
     super.key,
     required this.label,
     required this.onTap,
+    this.onLoadingTap,
     this.backgroundColor,
     this.foregroundColor,
     this.mode = MainButtonMode.another,
@@ -59,6 +61,7 @@ class _MainButtonState extends State<MainButton> with AnimatedPressMixin {
   @override
   void onPressComplete() {
     if (widget.isLoading == true) {
+      widget.onLoadingTap?.call();
       return;
     }
     widget.mode == MainButtonMode.another ? widget.onTap() : _togglePlaying();
@@ -93,7 +96,8 @@ class _MainButtonState extends State<MainButton> with AnimatedPressMixin {
       colors: [backgroundColor, backgroundColor.withValues(alpha: 0.8)],
     );
 
-    final hasBackgroundImage = widget.backgroundImageUrl != null &&
+    final hasBackgroundImage =
+        widget.backgroundImageUrl != null &&
         widget.backgroundImageUrl!.isNotEmpty;
 
     return buildPressable(
@@ -131,43 +135,46 @@ class _MainButtonState extends State<MainButton> with AnimatedPressMixin {
                   ),
                 ),
               Center(
-              child: widget.mode == MainButtonMode.another
-                  ? AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 0),
-                      switchInCurve: Curves.easeIn,
-                      switchOutCurve: Curves.easeOut,
-                      transitionBuilder: (child, animation) =>
-                          FadeTransition(opacity: animation, child: child),
-                      child: DelayedDisplay(
-                        delay: const Duration(milliseconds: 100),
-                        slidingBeginOffset: Offset(0, 0),
-                        child: Text(
-                          widget.label,
-                          key: const ValueKey('button_label_another'),
-                          style: TextStyle(
-                            fontWeight: FontWeight.w500,
-                            letterSpacing: 1,
-                            color: foregroundColor,
+                child: widget.mode == MainButtonMode.another
+                    ? AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 0),
+                        switchInCurve: Curves.easeIn,
+                        switchOutCurve: Curves.easeOut,
+                        transitionBuilder: (child, animation) =>
+                            FadeTransition(opacity: animation, child: child),
+                        child: DelayedDisplay(
+                          delay: const Duration(milliseconds: 100),
+                          slidingBeginOffset: Offset(0, 0),
+                          child: Text(
+                            widget.label,
+                            key: const ValueKey('button_label_another'),
+                            style: TextStyle(
+                              fontFamily: 'Raleway',
+                              package: 'design_system',
+                              fontWeight: FontWeight.w400,
+                              letterSpacing: 1,
+                              fontSize: 16,
+                              color: foregroundColor,
+                            ),
                           ),
                         ),
-                      ),
-                    )
-                  : widget.isLoading == true
-                  ? SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          foregroundColor.withValues(alpha: 0.8),
+                      )
+                    : widget.isLoading == true
+                    ? SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            foregroundColor.withValues(alpha: 0.8),
+                          ),
                         ),
+                      )
+                    : Icon(
+                        !_displayPlaying ? Icons.play_arrow : Icons.pause_sharp,
+                        key: ValueKey('audio_${_displayPlaying}'),
                       ),
-                    )
-                  : Icon(
-                      !_displayPlaying ? Icons.play_arrow : Icons.pause_sharp,
-                      key: ValueKey('audio_${_displayPlaying}'),
-                    ),
-            ),
+              ),
             ],
           ),
         ),

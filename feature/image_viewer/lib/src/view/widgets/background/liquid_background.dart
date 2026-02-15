@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
+import 'package:utils/utils.dart';
 import 'package:flutter/material.dart';
 
 class LiquidBackgroundPainter extends CustomPainter {
@@ -127,7 +128,7 @@ class _LiquidBackgroundState extends State<LiquidBackground>
     final padded = _padColors(target);
     if (_displayedColors.isEmpty) {
       _displayedColors = padded;
-      if (mounted) setState(() {});
+      if (mounted) setState(noop);
       return;
     }
     _transitionFromColors = List.of(_displayedColors);

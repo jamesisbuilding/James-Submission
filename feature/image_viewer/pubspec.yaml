@@ -19,6 +19,8 @@ dependencies:
   flutter_bloc: ^9.0.0
   design_system: 
     path: ../../core/design_system
+  utils:
+    path: ../../core/utils
   freezed_annotation: ^3.1.0
   image_pixels: ^4.0.2
   color_palette_generator: ^2.0.1

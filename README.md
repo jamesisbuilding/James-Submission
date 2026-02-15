@@ -7,7 +7,7 @@ Flutter coding-assessment project for Aurora.
 - **Shader-driven color interpolation** — GPU-accelerated linear interpolation of palettes across the carousel; background transitions driven by visible-image ratios.
 - **AI-augmented data** — LLM-powered titles and descriptions (ChatGPT/Gemini) for each image; accessibility-first storytelling.
 - **TTS with word highlighting** — ElevenLabs-backed text-to-speech; synchronized word highlighting for immersive playback.
-- **82.1% test coverage** — 111 tests across share service, bloc, repository, datasource, cubits, DI, widget, integration, and golden suites.
+- **82.1% test coverage** — 120+ tests across share service, bloc, repository, datasource, cubits, DI, widget, integration, and golden suites. Includes tests for button loading cancel (TTS and manual fetch), collected colours button/sheet.
 - **CI** — GitHub Actions runs `flutter analyze` and `flutter test` on app, image_viewer, and share_service.
 
 IMGO is a feed-based, luxury-travel inspiration app with:
@@ -126,7 +126,7 @@ The app is best optimized for iPhone 17 Pro. Although it should run on other dev
 10. Image visualisation fallbacks – we save the image locally and use cached network images so we have stable loading into the widget (no empty state)
 
 ### UI
-11. Expansion mode – expand the image to see title, description and colour palette. Stealth colour collector: tap "Collect Colors" in the palette view to save the image’s palette; collected state persists and reduces rebuild scope via CollectedColorsCubit
+11. Expansion mode – expand the image to see title, description and colour palette. **Collected colours:** tap "Collect Colors" in the palette view to save the image’s palette; a top-left button (three overlapping circles) appears once colours are collected, opens a glassmorphic bottom sheet with DraggableNotch, no border, transparent barrier. Button is hidden when no colours collected. State persists via CollectedColorsCubit
 12. Linear interpolation between colors – as the carousel moves the background palette changes with respect to the ratio of which image is primarily visible
 13. Expandable image cards – tap an image to expand and see the full title and description, with the play button for TTS
 14. **Gyroscope parallax** – the selected image card responds to device gyroscope on iPhone: tilt the device to see a subtle 3D parallax effect on the centred card (iOS/Android only)
@@ -135,6 +135,7 @@ The app is best optimized for iPhone 17 Pro. Although it should run on other dev
 17. **Control bar main button** – dynamic button with multiple states:
     - **Background image:** shows the next image (from prefetched queue) if available; if none are fetched, shows the current/selected image; when carousel is expanded, shows the current image as a faint background. Colours driven by the image palette.
     - **Loading state:** shows a spinner when manually fetching ("Another" tapped with no prefetched images) or when loading audio.
+    - **Button cancel during loading:** tapping the main button while it is loading cancels the in-flight operation—TTS playback stops if audio is loading, or the manual image fetch is cancelled via `FetchCancelled` if "Another" was tapped with an empty queue. Prevents accidental re-taps and gives users control to abort slow operations.
     - **Audio mode:** when the carousel is expanded, the button switches to play/pause for TTS (replacing the "Another" label).
     - Contrast ratio threshold (WCAG AAA). Minimum 7:1 for accessibility.
 18. Light and Dark mode – toggle via the button at the top right
@@ -230,12 +231,12 @@ For production deployment, consider adding:
 
 ## Testing
 
-**Test coverage summary** — **111 tests** (107 image_viewer + 4 share_service), **82.1% line coverage** (`feature/image_viewer`)
+**Test coverage summary** — **120 tests** (116 image_viewer + 4 share_service), **82.1% line coverage** (`feature/image_viewer`)
 
 | Suite | Tests | Path |
 |-------|-------|------|
 | ShareService | 4 | `core/services/share_service/test/share_service_impl_test.dart` |
-| ImageViewerBloc | 22 | `test/bloc/image_viewer_bloc_test.dart` |
+| ImageViewerBloc | 23 | `test/bloc/image_viewer_bloc_test.dart` |
 | Fetch flow integration | 4 | `test/integration/fetch_flow_integration_test.dart` |
 | ImageRepositoryImpl | 6 | `test/data/repositories/image_repository_impl_test.dart` |
 | ImageRemoteDatasource | 4 | `test/data/datasources/image_remote_datasource_test.dart` |
@@ -246,10 +247,12 @@ For production deployment, consider adding:
 | ImageViewerModule (DI) | 6 | `test/di/image_viewer_module_test.dart` |
 | ImageViewerFlow | 4 | `test/view/flow/image_viewer_flow_test.dart` |
 | ControlBar | 4 | `test/view/widgets/control_bar/control_bar_test.dart` |
-| ControlBarMainButton | 6 | `test/view/widgets/control_bar/control_bar_main_button_test.dart` |
+| ControlBarMainButton | 8 | `test/view/widgets/control_bar/control_bar_main_button_test.dart` |
 | ImageViewer expanded body | 3 | `test/view/widgets/image_square/image_viewer_expanded_body_test.dart` |
 | BackgroundLoadingIndicator | 7 | `test/view/widgets/loading/background_loading_indicator_test.dart` |
 | FavouriteStarButton | 3 | `test/view/widgets/control_bar/favourite_star_button_test.dart` |
+| CollectedColorsButton | 4 | `test/view/widgets/collected_colors/collected_colors_button_test.dart` |
+| CollectedColorsSheet | 5 | `test/view/widgets/collected_colors/collected_colors_sheet_test.dart` |
 | CustomDialog | 1 | `test/view/widgets/alerts/custom_dialog_test.dart` |
 | ErrorRetryFlow | 1 | `test/view/pages/error_retry_flow_test.dart` |
 | GyroParallaxCard | 5 | `test/view/widgets/gyro/gyro_parallax_card_test.dart` |
@@ -309,6 +312,11 @@ flutter test test/bloc/image_viewer_bloc_test.dart
 | AnotherImageEvent with no prefetched and loading none: triggers manual fetch | Manual fetch when user taps Another with empty queue |
 | AnotherImageEvent with no prefetched and loading background: switches to manual, no new fetch | User waiting – switch to manual, no duplicate request |
 | ImageViewerFetchRequested with default params triggers background prefetch | Scroll-to-page (length-2) prefetch path |
+
+*FetchCancelled:*
+| Test | Covers |
+|------|--------|
+| FetchCancelled during manual fetch cancels subscription and sets loadingType to none | In-flight manual fetch cancelled; subscription cancelled, loading cleared |
 
 *Bloc handlers coverage:*
 | Test | Covers |
@@ -390,8 +398,9 @@ flutter test test/cubit/tts_cubit_test.dart
 | onPlaybackComplete clears isPlaying/currentWord | Callback clears playback state and word highlight |
 | stop() always clears state | Cancel + clear regardless of current state |
 | exception in TTS service resets state and rethrows | Catch block clears state, rethrows to caller |
+| stop() during loading prevents isPlaying from ever being emitted | Cancel TTS during load; no spurious isPlaying emission |
 
-Uses `FakeTtsService` with controllable completion and error behavior.
+Uses `FakeTtsService` with controllable completion, error behavior, and `delayPlayReturn` for cancel-during-load tests.
 
 ### ImageViewerFlow widget tests
 
@@ -450,6 +459,8 @@ flutter test test/view/widgets/control_bar/control_bar_main_button_test.dart
 | manual loading collapsed: mode audio, isLoading true | Manual fetch shows spinner, mode switches to audio |
 | background loading collapsed: no loading shown | Background fetch does not show spinner on main button |
 | displayImageForColor overrides colors | displayImageForColor drives bg/foreground palette |
+| tap during TTS loading calls TtsCubit.stop and clears loading | Button cancel during TTS load; TtsCubit.stop clears state |
+| tap during manual fetch dispatches FetchCancelled and clears loading | Button cancel during manual fetch; FetchCancelled clears loadingType |
 
 Uses `pump(const Duration(milliseconds: 300))` to allow AnimatedPressMixin timer to complete before teardown.
 
@@ -517,6 +528,43 @@ flutter test test/view/widgets/control_bar/favourite_star_button_test.dart
 
 Uses `debugBuildCount` on `FavouriteStarButton` to instrument rebuilds.
 
+### CollectedColorsButton widget tests
+
+Button visibility and sheet-open behavior:
+
+```bash
+cd feature/image_viewer
+flutter test test/view/widgets/collected_colors/collected_colors_button_test.dart
+```
+
+**Coverage (4 tests)**
+
+| Test | Covers |
+|------|--------|
+| is hidden when collected is empty | Button returns SizedBox.shrink when no colours |
+| is visible when collected has colors | GestureDetector shown when cubit has entries |
+| tap opens collected colours sheet | Modal bottom sheet with CollectedColorsSheet |
+| becomes visible when colors added after empty | BlocBuilder rebuilds on cubit state change |
+
+### CollectedColorsSheet widget tests
+
+Sheet layout, notch, and empty state:
+
+```bash
+cd feature/image_viewer
+flutter test test/view/widgets/collected_colors/collected_colors_sheet_test.dart
+```
+
+**Coverage (5 tests)**
+
+| Test | Covers |
+|------|--------|
+| shows my colours title | YesevaOne heading present |
+| shows DraggableNotch at top | Notch matches control bar style |
+| shows empty state when no colours collected | "No colours collected yet" message |
+| shows empty state when collected has no entries | Empty-map handling |
+| shows palette rows when colours collected | ListView with palette circles |
+
 ### Error-retry flow widget test
 
 When an error is emitted with no visible images (e.g. initial load failure), the dialog is shown and on dismiss a retry fetch is triggered:
@@ -558,7 +606,7 @@ Uses injectable `gyroscopeStream` for testing; on device uses `sensors_plus` gyr
 From the repo root (`aurora_test/`):
 
 ```bash
-# Run every test across all packages (111 tests)
+# Run every test across all packages (120 tests)
 cd app && flutter test && cd ../feature/image_viewer && flutter test && cd ../../core/services/share_service && flutter test
 
 # Or run each package separately:
@@ -566,7 +614,7 @@ cd app && flutter test
 cd feature/image_viewer && flutter test
 cd core/services/share_service && flutter test
 
-# image_viewer only (107 tests, main feature)
+# image_viewer only (116 tests, main feature)
 cd feature/image_viewer && flutter test
 
 # With coverage (82.1% line coverage in image_viewer)

@@ -1,4 +1,4 @@
-import 'dart:async' show TimeoutException;
+import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -17,6 +17,7 @@ class ImageViewerBloc extends Bloc<ImageViewerEvent, ImageViewerState> {
     : _imageRepository = imageRepository,
       super(ImageViewerState.empty()) {
     on<ImageViewerFetchRequested>(_onFetchRequested);
+    on<FetchCancelled>(_onFetchCancelled);
     on<UpdateSelectedImage>(_updateSelectedImage);
     on<AnotherImageEvent>(_anotherImageEvent);
     on<ErrorDismissed>(_onErrorDismissed);
@@ -25,6 +26,9 @@ class ImageViewerBloc extends Bloc<ImageViewerEvent, ImageViewerState> {
   }
 
   final ImageRepository _imageRepository;
+
+  StreamSubscription<ImageModel>? _fetchSubscription;
+  Completer<void>? _fetchCancelCompleter;
 
   /// Signatures that are already accepted into bloc state.
   final Set<String> _acceptedSignatures = <String>{};

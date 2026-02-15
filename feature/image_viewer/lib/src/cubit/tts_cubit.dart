@@ -14,10 +14,14 @@ class TtsCubit extends Cubit<TtsState> {
 
   final AbstractTtsService _ttsService;
   StreamSubscription<TtsCurrentWord>? _wordSubscription;
+  bool _playCancelled = false;
+  Completer<void>? _playCancelCompleter;
 
   Future<void> play(String title, String description) async {
     _wordSubscription?.cancel();
     _wordSubscription = null;
+    _playCancelled = false;
+    _playCancelCompleter = Completer<void>();
     emit(state.copyWith(isLoading: true, nullifyCurrentWord: true));
 
     await _ttsService.stop();
@@ -29,6 +33,8 @@ class TtsCubit extends Cubit<TtsState> {
       await _ttsService.playTextToSpeech(
         title,
         description,
+        cancelWhen: _playCancelCompleter!.future,
+        isCancelled: () => _playCancelled,
         onPlaybackComplete: () {
           if (!isClosed) {
             _wordSubscription?.cancel();
@@ -41,20 +47,29 @@ class TtsCubit extends Cubit<TtsState> {
           }
         },
       );
-      emit(state.copyWith(isLoading: false, isPlaying: true));
+      if (!_playCancelled && !isClosed) {
+        emit(state.copyWith(isLoading: false, isPlaying: true));
+      }
     } catch (_) {
       _wordSubscription?.cancel();
       _wordSubscription = null;
-      emit(state.copyWith(
-        isLoading: false,
-        isPlaying: false,
-        nullifyCurrentWord: true,
-      ));
-      rethrow;
+      if (!isClosed) {
+        emit(state.copyWith(
+          isLoading: false,
+          isPlaying: false,
+          nullifyCurrentWord: true,
+        ));
+      }
+      if (!_playCancelled) rethrow;
     }
   }
 
   Future<void> stop() async {
+    _playCancelled = true;
+    if (_playCancelCompleter != null && !_playCancelCompleter!.isCompleted) {
+      _playCancelCompleter!.complete();
+    }
+    _playCancelCompleter = null;
     _wordSubscription?.cancel();
     _wordSubscription = null;
     emit(state.copyWith(

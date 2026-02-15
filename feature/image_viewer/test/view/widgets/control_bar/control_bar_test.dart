@@ -6,6 +6,7 @@ import 'package:image_viewer/image_viewer.dart';
 import 'package:image_viewer/src/view/widgets/control_bar/control_bar.dart';
 import 'package:image_viewer/src/view/widgets/loading/background_loading_indicator.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:utils/utils.dart';
 
 import '../../../bloc/image_viewer_bloc_test_utils.dart';
 import '../../../cubit/fakes/fake_tts_service.dart';
@@ -87,7 +88,7 @@ void main() {
       await tester.pumpWidget(
         buildTestHarness(
           child: ControlBar(
-            onAnotherTap: () {},
+            onAnotherTap: noop,
             mode: MainButtonMode.another,
             onPlayTapped: (_) {},
             backgroundColor: null,
@@ -114,7 +115,7 @@ void main() {
       await tester.pumpWidget(
         buildTestHarness(
           child: ControlBar(
-            onAnotherTap: () {},
+            onAnotherTap: noop,
             mode: MainButtonMode.audio,
             onPlayTapped: (_) {},
             backgroundColor: null,
@@ -139,7 +140,7 @@ void main() {
       await tester.pumpWidget(
         buildTestHarness(
           child: ControlBar(
-            onAnotherTap: () {},
+            onAnotherTap: noop,
             mode: MainButtonMode.another,
             onPlayTapped: (_) {},
             backgroundColor: null,
@@ -165,7 +166,7 @@ void main() {
       await tester.pumpWidget(
         buildTestHarness(
           child: ControlBar(
-            onAnotherTap: () {},
+            onAnotherTap: noop,
             mode: MainButtonMode.audio,
             onPlayTapped: (_) {},
             backgroundColor: null,
