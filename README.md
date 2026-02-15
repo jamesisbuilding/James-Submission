@@ -31,7 +31,8 @@ on a real device.
 
 ## Demo
 - Video demos: https://drive.google.com/drive/folders/1iASAfGXv4h4pXNdNDrNEwNQArccPV5KO?usp=sharing  
-  **Imgo.MOV** and **Imgo - Improved Interaction Prompts and Page Axis Switching.MP4** both show full demos. The Improved video adds tap prompts (touch hint) and axis switching (scroll direction toggle); both videos are included (the second was left as-is as network was slow during that recording). A 3rd video, **Quick demo**, is from the emulator: no sound and no gyro demo, but it shows the best performance for prefetching and caching.
+  **1. Quick demo** — Emulator; no sound and no gyro demo, but best performance for prefetching and caching.  
+  **2. Imgo - Improved UX** — Full demo with tap prompts (touch hint) and axis switching (scroll direction toggle); recorded on device (network was slow during that recording).
 
 ---
 
