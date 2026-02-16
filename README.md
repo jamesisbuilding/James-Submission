@@ -2,6 +2,8 @@
 
 Flutter coding-assessment project for Aurora.
 
+I got really into this challenge and built more than required—it was genuinely fun. The full version (IMGO) is in the repo, but I want to be clear: for the actual assignment, the core features took about 4 hours. The rest was me exploring the problem space because I found it interesting. I can definitely calibrate scope for production work
+
 **Key highlights**
 - **Background prefetching** — We fetch a batch of 5 on start (first visible, rest in a queue). When the user is 2 pages from the end we prefetch 5 more in the background; when they tap "Another" we consume from the queue and refill when it drops to 1. Deduplication by URL and pixel signature with exponential backoff.
 - **Caching** — Fetched images are saved to app temp (`viewer_cache/`) and the UI prefers this local file over the network. Network URLs use `CachedNetworkImage`; the selected image is precached before showing as the button background to avoid flash.

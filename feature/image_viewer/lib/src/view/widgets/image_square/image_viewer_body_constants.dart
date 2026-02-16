@@ -1,6 +1,6 @@
 /// When content overflows viewport, each block reveals based on scroll position.
 /// Fraction of viewport scrolled per block to trigger reveal (5–10%).
-const scrollRevealFraction = 0.05;
+const scrollRevealFraction = 0.08;
 
 /// Delay (ms) before first body block animates in when content fits viewport.
 const bodyDelayStartMs = 1000;

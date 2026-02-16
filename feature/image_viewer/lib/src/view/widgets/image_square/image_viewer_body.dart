@@ -136,7 +136,13 @@ class _ImageViewerBodyState extends State<ImageViewerBody> {
     );
 
     final titleWidget = useScrollReveal
-        ? wrapScrollReveal(titleBlock, 0, _maxRevealedIndex)
+        ? wrapScrollReveal(
+            child: titleBlock,
+            blockIndex: 0,
+            maxRevealedIndex: _maxRevealedIndex,
+            showReveal: false,
+            revealColor: Colors.transparent,
+          )
         : wrapTimeReveal(titleBlock, bodyDelayStartMs);
 
     final descriptionChildren = <Widget>[];
@@ -144,9 +150,13 @@ class _ImageViewerBodyState extends State<ImageViewerBody> {
       for (var i = 0; i < descBlocks.length; i++) {
         descriptionChildren.add(
           wrapScrollReveal(
-            Padding(padding: EdgeInsets.zero, child: descBlocks[i]),
-            1 + i,
-            _maxRevealedIndex,
+            child: Padding(padding: .zero, child: descBlocks[i]),
+            blockIndex: 1 + i,
+
+
+            maxRevealedIndex: _maxRevealedIndex,
+            showReveal: (1 + i) % 2 != 0,
+            revealColor: widget.image.darkestColor
           ),
         );
       }
@@ -184,10 +194,7 @@ class _ImageViewerBodyState extends State<ImageViewerBody> {
           opacity: widget.visible ? 1 : 0,
           duration: const Duration(milliseconds: 250),
           child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 16.0,
-              vertical: 20,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.center,
