@@ -1,6 +1,6 @@
 # Technical Assessment - James Potter (IMGO)
 
-![IMGO](screenshots/imgo.png)
+![IMGO](screenshots/screenshots.png)
 
 IMGO is a feed-based, luxury-travel inspiration app with:
 - intro video + seamless transition into an image carousel,
