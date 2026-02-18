@@ -39,6 +39,10 @@ Future<void> configureDependencies() async {
 
   // Image viewer: feature owns its blocs; app has no knowledge of them
   registerImageViewerModule(_sl);
+  registerImageViewerAppServices(
+    _sl,
+    onThemeToggle: () {},
+  );
 
   _sl.registerLazySingleton<ThemeNotifier>(
     () => ThemeNotifier(initialMode: ThemeMode.dark),

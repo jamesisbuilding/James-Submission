@@ -34,6 +34,8 @@ dependencies:
     path: ../../core/services/image_analysis_service
   tts_service:
     path: ../../core/services/tts_service
+  gallery_view:
+    path: ../gallery_view
   delayed_display: ^2.0.0
   equatable: ^2.0.7
   video_player: ^2.9.2

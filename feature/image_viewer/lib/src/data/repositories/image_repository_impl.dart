@@ -15,7 +15,8 @@ void _log(String message) {
 const _maxRetriesPerSlot = 3;
 const _initialBackoffMs = 500;
 const _maxSequentialDuplicates = 3;
-const _requestTimeout = Duration(seconds: 10);
+const _targetImageCount = 16;
+const _requestTimeout = Duration(seconds: 30);
 
 class ImageRepositoryImpl implements ImageRepository {
   ImageRepositoryImpl({
@@ -30,6 +31,9 @@ class ImageRepositoryImpl implements ImageRepository {
   /// Global set of pixel signatures seen across all fetches. Prevents duplicates
   /// even when [existingImages] passed to [runImageRetrieval] is stale.
   final Set<String> _seenSignatures = {};
+
+  bool _hasReachedTargetImageCount(int currentCount) =>
+      currentCount >= _targetImageCount;
 
   @override
   Stream<ImageModel> runImageRetrieval({
@@ -55,6 +59,7 @@ class ImageRepositoryImpl implements ImageRepository {
       round <= _maxRetriesPerSlot && remainingToFetch > 0;
       round++
     ) {
+      var shouldRestartFetchProcess = false;
       // Print state params each round for debugging
       debugPrint(
         '[ImageRepo] Round $round: remainingToFetch=$remainingToFetch, backoffMs=$backoffMs, sequentialDuplicates=$sequentialDuplicates, '
@@ -92,9 +97,10 @@ class ImageRepositoryImpl implements ImageRepository {
           Success(:final value) => value,
           Failure(:final type) => () {
             if (type == FailureType.duplicate) {
+              shouldRestartFetchProcess = true;
               sequentialDuplicates++;
-              if (sequentialDuplicates >= _maxSequentialDuplicates) {
-              
+              if (sequentialDuplicates >= _maxSequentialDuplicates &&
+                  _hasReachedTargetImageCount(currentPool.length)) {
                 throw NoMoreImagesException(
                   'Too many sequential duplicates '
                   '${sequentialDuplicates}/$_maxSequentialDuplicates',
@@ -108,10 +114,13 @@ class ImageRepositoryImpl implements ImageRepository {
         };
 
         if (model != null) {
-          if (model.pixelSignature.isEmpty || _seenSignatures.contains(model.pixelSignature)) {
+          if (model.pixelSignature.isEmpty ||
+              _seenSignatures.contains(model.pixelSignature)) {
+            shouldRestartFetchProcess = true;
             if (model.pixelSignature.isNotEmpty) {
               sequentialDuplicates++;
-              if (sequentialDuplicates >= _maxSequentialDuplicates) {
+              if (sequentialDuplicates >= _maxSequentialDuplicates &&
+                  _hasReachedTargetImageCount(currentPool.length)) {
                 throw NoMoreImagesException(
                   'Too many sequential duplicates '
                   '${sequentialDuplicates}/$_maxSequentialDuplicates',
@@ -129,6 +138,11 @@ class ImageRepositoryImpl implements ImageRepository {
 
           if (remainingToFetch <= 0) break;
         }
+      }
+
+      if (shouldRestartFetchProcess && remainingToFetch > 0) {
+        _log('Duplicate detected; restarting fetch process.');
+        continue;
       }
 
       if (remainingToFetch <= 0) break;

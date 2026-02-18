@@ -33,25 +33,28 @@ class CollectedColorsButton extends StatelessWidget {
           );
         }
 
-        return GestureDetector(
-          onTap: () {
-            HapticFeedback.lightImpact();
-            _showCollectedColorsSheet(context, collected);
-          },
-          behavior: HitTestBehavior.opaque,
-          child: SizedBox(
-            width: _circleSize + _overlapOffset * 2,
-            height: _circleSize,
-            child: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                for (var i = 0; i < 3; i++)
-                  Positioned(
-                    left: i * _overlapOffset,
-                    top: 0,
-                    child: _ColorCircle(color: displayColors[i]),
-                  ),
-              ],
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: GestureDetector(
+            onTap: () {
+              HapticFeedback.lightImpact();
+              _showCollectedColorsSheet(context, collected);
+            },
+            behavior: HitTestBehavior.opaque,
+            child: SizedBox(
+              width: _circleSize + _overlapOffset * 2,
+              height: _circleSize,
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  for (var i = 0; i < 3; i++)
+                    Positioned(
+                      left: i * _overlapOffset,
+                      top: 0,
+                      child: _ColorCircle(color: displayColors[i]),
+                    ),
+                ],
+              ),
             ),
           ),
         );

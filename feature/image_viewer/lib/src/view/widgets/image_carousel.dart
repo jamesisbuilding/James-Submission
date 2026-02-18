@@ -214,7 +214,6 @@ class _ImageCarouselState extends State<ImageCarousel> {
               //     ),
               //   ),
               // ),
-
               Center(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -249,32 +248,5 @@ class _ImageCarouselState extends State<ImageCarousel> {
         },
       ),
     );
-  }
-
-  ImageModel? get _selectedImage =>
-      widget.images.where((i) => i.uid == widget.selectedID).firstOrNull;
-
-  /// [n] shades lighter (lerp toward white).
-  Color _nShadesLighter(Color color, int n) =>
-      Color.lerp(color, Colors.white, (n * 0.06).clamp(0.0, 1.0)) ?? color;
-
-  /// [n] shades darker (lerp toward black).
-  Color _nShadesDarker(Color color, int n) =>
-      Color.lerp(color, Colors.black, (n * 0.06).clamp(0.0, 1.0)) ?? color;
-
-  Color? _waveColor1(BuildContext context) {
-    final selected = _selectedImage;
-    if (selected == null) return null;
-    final isLightMode = Theme.of(context).brightness == Brightness.light;
-    return isLightMode ? selected.lightestColor : selected.darkestColor;
-  }
-
-  Color? _waveColor2(BuildContext context) {
-    final selected = _selectedImage;
-    if (selected == null) return null;
-    final isLightMode = Theme.of(context).brightness == Brightness.light;
-    return isLightMode
-        ? _nShadesDarker(selected.lightestColor, 5)
-        : _nShadesLighter(selected.darkestColor, 5);
   }
 }

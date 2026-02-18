@@ -11,7 +11,7 @@ enum ViewerErrorType {
   ),
   noMoreImages(
     message:
-        'Oops! It seems we\'re receiving a lot of duplicates now, so you may have gotten all the images available.\n\nTry load some more or check out their descriptions.',
+        'Oops! It seems we\'re receiving a lot of duplicates now, so you may have gotten all the images available.\n\nTime to check out their descriptions and collect their colours!',
   ),
   fetchTimeout(
     message: 'Request timed out. Please check your connection and try again.',

@@ -61,6 +61,10 @@ void main() {
     testGetIt.registerFactory<FavouritesCubit>(() => FavouritesCubit());
     testGetIt.registerFactory<CollectedColorsCubit>(() => CollectedColorsCubit());
     testGetIt.registerFactory<ScrollDirectionCubit>(() => ScrollDirectionCubit());
+    registerImageViewerAppServices(
+      testGetIt,
+      onThemeToggle: noop,
+    );
   });
 
   tearDown(() async {

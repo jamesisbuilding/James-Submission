@@ -7,7 +7,6 @@ import 'package:utils/utils.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_analysis_service/image_analysis_service.dart';
 import 'package:image_viewer/src/cubit/cubit.dart';
-import 'package:image_viewer/src/view/widgets/gyro/gyro_parallax_card.dart';
 import 'package:image_viewer/src/view/widgets/image_square/image_viewer_body.dart';
 import 'package:image_viewer/src/view/widgets/image_square/image_viewer_square.dart';
 
@@ -137,50 +136,63 @@ class _ImageViewerState extends State<ImageViewer> with AnimatedPressMixin {
   }
 
   List<Widget> _buildContent() {
+    final imageCard = Padding(
+      padding: const EdgeInsets.all(20.0),
+      child: AspectRatio(
+        aspectRatio: 1,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            GyroParallaxCard(
+              enabled: (widget.selected && !widget.disabled) || widget.expanded,
+              child: Hero(
+                tag: 'gallery_hero_${widget.image.uid}',
+                flightShuttleBuilder: (
+                  flightContext,
+                  animation,
+                  flightDirection,
+                  fromHeroContext,
+                  toHeroContext,
+                ) {
+                  return _HeroFlightImage(url: widget.image.url);
+                },
+                placeholderBuilder: (context, heroSize, child) {
+                  return _HeroFlightImage(url: widget.image.url);
+                },
+                child: ImageViewerSquare(
+                  localPath: widget.image.localPath,
+                  networkPath: widget.image.url,
+                  imageUid: widget.image.uid,
+                  lightestColor: widget.image.lightestColor,
+                ),
+              ),
+            ),
+            if (_showTouchHint)
+              Positioned.fill(
+                child: Opacity(
+                  opacity: 0.3,
+                  child: Padding(
+                    padding: const EdgeInsets.all(100.0),
+                    child: IgnorePointer(
+                      child: Center(
+                        child: Assets.gifs.touch.designImage(),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+
     return [
       buildPressable(
         child: SafeArea(
           child: AnimatedOpacity(
             opacity: _colorsExpanded ? 0 : 1,
             duration: const Duration(milliseconds: 250),
-            child: DelayedDisplay(
-              child: Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: AspectRatio(
-                  aspectRatio: 1,
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      GyroParallaxCard(
-                        enabled:
-                            (widget.selected && !widget.disabled) ||
-                            widget.expanded,
-                        child: ImageViewerSquare(
-                          localPath: widget.image.localPath,
-                          networkPath: widget.image.url,
-                          imageUid: widget.image.uid,
-                          lightestColor: widget.image.lightestColor,
-                        ),
-                      ),
-                      if (_showTouchHint)
-                        Positioned.fill(
-                          child: Opacity(
-                            opacity: 0.3,
-                            child: Padding(
-                              padding: const EdgeInsets.all(100.0),
-                              child: IgnorePointer(
-                                child: Center(
-                                  child: Assets.gifs.touch.designImage(),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
+            child: DelayedDisplay(child: imageCard),
           ),
         ),
       ),
@@ -197,5 +209,31 @@ class _ImageViewerState extends State<ImageViewer> with AnimatedPressMixin {
           ),
         ),
     ];
+  }
+}
+
+class _HeroFlightImage extends StatelessWidget {
+  const _HeroFlightImage({required this.url});
+
+  final String url;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      elevation: 10,
+      shadowColor: Theme.of(context).colorScheme.surface,
+      borderRadius: BorderRadius.circular(12),
+      color: Colors.transparent,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: url.isEmpty
+            ? ColoredBox(color: Theme.of(context).colorScheme.onSurface)
+            : CachedImage(
+                url: url,
+                fit: BoxFit.cover,
+                borderRadius: BorderRadius.circular(12),
+              ),
+      ),
+    );
   }
 }

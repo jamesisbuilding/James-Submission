@@ -33,10 +33,8 @@ on a real device.
 
 ## Demo
 - Video demos: https://drive.google.com/drive/folders/1iASAfGXv4h4pXNdNDrNEwNQArccPV5KO?usp=sharing  
-NOTE: I noticed a small flicker on the home button corners as the animation over-extends. I have fixed this in video 3. 
-  **1. Quick demo** — Emulator; no sound and no gyro demo, but best performance for prefetching and caching.  
-  **2. Polished On Device Demo** — Full product demo with gyro, tts and intro video.
-  **2. Improved Home Button** — Fixing that annoying over-extension of expansion animation.
+  **1. Main video** — video demoing full flow
+  **2. Archive** - previous videos of implementation as backlog
 
 
 ---
@@ -190,7 +188,7 @@ The project is structured as a modular Flutter app – each feature and core con
 
 **Refactoring and optimisation (done)**
 
-The view layer has been refactored: the background loading indicator is integrated into the control bar and moves with it on expand/collapse. Bloc handlers use the current state at catch time (not the event’s original loading type) so error surfacing correctly tracks manual vs background loading even when state changes mid-fetch. Duplication handling uses URL deduplication before processing, pixel signature checks, `FailureType.duplicate` from the analysis service, and a bloc-level defensive filter; three sequential duplicates trigger `NoMoreImagesException` and fail fast. Image analysis requests use a 10s timeout with `TimeoutException` surfaced for manual fetches. The Another button uses precache for its color/background image to avoid flash when new images load.
+The view layer has been refactored: the background loading indicator is integrated into the control bar and moves with it on expand/collapse. Bloc handlers use the current state at catch time (not the event’s original loading type) so error surfacing correctly tracks manual vs background loading even when state changes mid-fetch. Duplication handling uses URL deduplication before processing, pixel signature checks, `FailureType.duplicate` from the analysis service, and a bloc-level defensive filter. Sequential duplicate handling is now target-count aware, and duplicate rounds restart fetch attempts before surfacing exhaustion. Image analysis requests use a 30s timeout with `TimeoutException` surfaced for manual fetches. The Another button uses precache for its color/background image to avoid flash when new images load.
 
 **Still to improve – Eleven Labs and LLM resilience**
 
@@ -242,16 +240,16 @@ For production deployment, consider adding:
 | **Background shader** | `LiquidBackground` uses `FragmentShader` (`gradient.frag`) | GPU-rendered; `blendedColorsNotifier` updates drive repaints; 5-slot color interpolation is O(1) per frame. |
 | **Prefetch** | Triggered at `page == images.length - 2` | Avoids over-fetch; queue capped by bloc; deduplication reduces redundant processing. |
 | **TTS** | Streamed from ElevenLabs | Audio loads async; `TtsCubit` manages playback state; no blocking on main isolate. |
-| **Image analysis** | Per-image LLM call with 10s timeout | Batch of 5; sequential processing in repository; consider parallelisation for larger batches. |
+| **Image analysis** | Per-image LLM call with 30s timeout | Batch of 5; sequential processing in repository; consider parallelisation for larger batches. |
 | **Memory** | `CachedNetworkImage` + local file fallback | Images evicted by cache; carousel disposes off-screen pages; `RepaintBoundary` on screenshot capture. |
 
 **Profiling:** Run with `flutter run --profile` and use DevTools (Performance, Memory) to verify frame times and heap usage on target devices.
 
 ### Carousel scroll direction (vertical vs horizontal)
 
-The carousel supports both vertical and horizontal scrolling, with a user-toggle (top-left icon). Research does not favour one direction universally; the choice depends on task and context. We default to vertical and allow switching.
+The carousel supports both vertical and horizontal scrolling, with a user-toggle (top-left icon). Research does not favour one direction universally; the choice depends on task and context. We default to horizontal and allow switching.
 
-**Vertical scroll (default):** Vertical scrolling aligns with common mobile behaviour (feeds, social streams) and tends to be easier for users because of familiarity and muscle memory. Platform guidelines often discourage horizontal scroll because it can add friction. — [1] [ScienceDirect](https://www.sciencedirect.com/topics/computer-science/horizontal-scrolling) (vertical as usual default); [2] [UGent](https://libstore.ugent.be/fulltxt/RUG01/002/837/790/RUG01-002837790_2020_0001_AC.pdf) (muscle memory for vertical scroll; violating that can increase cognitive load).
+**Vertical scroll:** Vertical scrolling aligns with common mobile behaviour (feeds, social streams) and tends to be easier for users because of familiarity and muscle memory. Platform guidelines often discourage horizontal scroll because it can add friction. — [1] [ScienceDirect](https://www.sciencedirect.com/topics/computer-science/horizontal-scrolling) (vertical as usual default); [2] [UGent](https://libstore.ugent.be/fulltxt/RUG01/002/837/790/RUG01-002837790_2020_0001_AC.pdf) (muscle memory for vertical scroll; violating that can increase cognitive load).
 
 **Horizontal scroll:** Horizontal swipe can be better suited to discrete, paged content (e.g. product carousels) and has been linked to higher cognitive absorption and playfulness in some flows. — [3] [PMC](https://pmc.ncbi.nlm.nih.gov/articles/PMC9948611/) (horizontal swipe may be better for segmented information processing); [4] [ResearchGate](https://www.researchgate.net/publication/304344009_Swiping_vs_Scrolling_in_Mobile_Shopping_Applications) (horizontal swipe interfaces can increase cognitive absorption in mobile shopping).
 

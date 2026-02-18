@@ -11,13 +11,15 @@ import 'package:image_viewer/src/utils/image_provider_utils.dart';
 import 'package:image_viewer/src/utils/image_viewer_color_utils.dart';
 import 'package:image_viewer/src/view/widgets/alerts/custom_dialog.dart';
 import 'package:image_viewer/src/view/widgets/background/image_viewer_background.dart';
-import 'package:image_viewer/src/view/widgets/control_bar/control_bar.dart';
-import 'package:image_viewer/src/view/widgets/image_carousel.dart';
 import 'package:image_viewer/src/view/widgets/carousel/carousel.dart';
 import 'package:image_viewer/src/view/widgets/collected_colors/collected_colors_button.dart';
+import 'package:image_viewer/src/view/widgets/control_bar/control_bar.dart';
+import 'package:image_viewer/src/view/widgets/image_carousel.dart';
 import 'package:image_viewer/src/view/widgets/loading/background_loading_indicator.dart';
 
 part 'carousel_scope.dart';
+part 'carousel_scope_actions.dart';
+part 'carousel_scope_top_controls.dart';
 part 'image_viewer_content.dart';
 
 /// Expects [BlocProvider<ImageViewerBloc>] from an ancestor (e.g. app router).
@@ -26,11 +28,13 @@ class ImageViewerScreen extends StatelessWidget {
     super.key,
     required this.onThemeToggle,
     this.onShareTap,
+    this.onOpenGalleryRoute,
     this.videoComplete = true,
   });
 
   final VoidCallback onThemeToggle;
   final void Function(ImageModel?, {Uint8List? screenshotBytes})? onShareTap;
+  final OpenGalleryRouteCallback? onOpenGalleryRoute;
 
   /// When false, startup errors (no visible images) are suppressed until the
   /// intro video completes. Defaults to true for tests/direct usage.
@@ -41,6 +45,7 @@ class ImageViewerScreen extends StatelessWidget {
     return _ImageViewerContent(
       onThemeToggle: onThemeToggle,
       onShareTap: onShareTap,
+      onOpenGalleryRoute: onOpenGalleryRoute,
       videoComplete: videoComplete,
     );
   }

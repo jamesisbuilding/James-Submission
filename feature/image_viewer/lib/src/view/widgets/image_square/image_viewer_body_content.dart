@@ -1,6 +1,3 @@
-import 'dart:ui';
-
-import 'package:delayed_display/delayed_display.dart';
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:image_analysis_service/image_analysis_service.dart';

@@ -1,0 +1,27 @@
+name: gallery_view
+description: a gallery view used to see images
+
+
+publish_to: 'none' 
+
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.10.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  design_system:
+    path: ../../core/design_system
+  image_analysis_service:
+    path: ../../core/services/image_analysis_service
+  shimmer_animation: ^2.2.2+1
+
+flutter:
+  uses-material-design: true
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter

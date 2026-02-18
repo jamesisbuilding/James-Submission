@@ -7,5 +7,6 @@ export 'src/theme/theme.dart';
 export 'src/widgets/buttons/custom_icon_button.dart';
 export 'src/widgets/buttons/main_button.dart';
 export 'src/widgets/cached_image.dart';
+export 'src/widgets/gyro_parallax_card.dart';
 export 'src/widgets/image_title_text.dart';
 export 'src/widgets/theme_switch.dart';

@@ -8,6 +8,7 @@ void showCustomDialog({
   required BuildContext context,
   required String message,
   required VoidCallback onDismiss,
+  Widget? icon,
 }) {
   WidgetsBinding.instance.addPostFrameCallback((_) {
     HapticFeedback.heavyImpact();
@@ -30,6 +31,7 @@ void showCustomDialog({
           child: _GlassmorphicDialog(
             message: message,
             onDismiss: onDismiss,
+            icon: icon,
           ),
         );
       },
@@ -41,10 +43,12 @@ class _GlassmorphicDialog extends StatelessWidget {
   const _GlassmorphicDialog({
     required this.message,
     required this.onDismiss,
+    this.icon,
   });
 
   final String message;
   final VoidCallback onDismiss;
+  final Widget? icon;
 
   @override
   Widget build(BuildContext context) {
@@ -87,6 +91,11 @@ class _GlassmorphicDialog extends StatelessWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    if (icon != null)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        child: icon!,
+                      ),
                     Padding(
                       padding: const EdgeInsets.only(bottom: 16),
                       child: Text(

@@ -26,6 +26,8 @@ dependencies:
 
   image_viewer:
     path: ../feature/image_viewer
+  gallery_view:
+    path: ../feature/gallery_view
   image_analysis_service:
     path: ../core/services/image_analysis_service
   tts_service:

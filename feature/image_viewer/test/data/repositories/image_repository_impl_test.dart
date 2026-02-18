@@ -49,17 +49,30 @@ void main() {
     test('duplicate result increments sequential duplicate counter and throws at threshold',
         () async {
       fakeDatasource.reset(
-        urlsToReturn: ['https://a.com/1', 'https://b.com/2', 'https://c.com/3'],
+        urlsToReturn: [
+          'https://a.com/1',
+          'https://b.com/2',
+          'https://c.com/3',
+          'https://d.com/4',
+        ],
       );
       fakeAnalysisService.reset(
         resultsToReturn: [
           Failure('duplicate', type: FailureType.duplicate),
           Failure('duplicate', type: FailureType.duplicate),
           Failure('duplicate', type: FailureType.duplicate),
+          Failure('duplicate', type: FailureType.duplicate),
         ],
       );
 
-      final stream = repository.runImageRetrieval(count: 1, existingImages: []);
+      final existing = List.generate(
+        16,
+        (i) => testImage('seed_$i', 'seed_sig_$i'),
+      );
+      final stream = repository.runImageRetrieval(
+        count: 1,
+        existingImages: existing,
+      );
 
       expect(
         () => stream.toList(),
@@ -151,7 +164,14 @@ void main() {
         ],
       );
 
-      final stream = repository.runImageRetrieval(count: 3, existingImages: []);
+      final existing = List.generate(
+        16,
+        (i) => testImage('seed_$i', 'seed_sig_$i'),
+      );
+      final stream = repository.runImageRetrieval(
+        count: 3,
+        existingImages: existing,
+      );
 
       expect(
         () => stream.toList(),

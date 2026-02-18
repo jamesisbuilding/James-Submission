@@ -4,11 +4,13 @@ class _ImageViewerContent extends StatefulWidget {
   const _ImageViewerContent({
     required this.onThemeToggle,
     this.onShareTap,
+    this.onOpenGalleryRoute,
     this.videoComplete = true,
   });
 
   final VoidCallback onThemeToggle;
   final void Function(ImageModel?, {Uint8List? screenshotBytes})? onShareTap;
+  final OpenGalleryRouteCallback? onOpenGalleryRoute;
   final bool videoComplete;
 
   @override
@@ -187,6 +189,7 @@ class _ImageViewerContentState extends State<_ImageViewerContent> {
                   onExpanded: (expanded) =>
                       _toggleExpandedView(expanded: expanded),
                   onThemeToggle: widget.onThemeToggle,
+                  onOpenGalleryRoute: widget.onOpenGalleryRoute,
                   onNextPage: () =>
                       context.read<ImageViewerBloc>().add(AnotherImageEvent()),
                   onShareTap: widget.onShareTap,

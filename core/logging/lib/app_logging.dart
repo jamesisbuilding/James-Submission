@@ -33,6 +33,5 @@ class AppLog {
       if (stackTrace != null) buf.write('\n$stackTrace');
       debugPrint(buf.toString());
     }
-    // TODO: In production, send w/e to Crashlytics or logging backend
   }
 }
