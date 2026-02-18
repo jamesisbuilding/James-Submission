@@ -1,4 +1,4 @@
-# Aurora Technical Assessment - James Potter (IMGO)
+# Technical Assessment - James Potter (IMGO)
 
 ![IMGO](screenshots/imgo.png)
 
