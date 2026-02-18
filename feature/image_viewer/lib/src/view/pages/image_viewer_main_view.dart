@@ -12,7 +12,6 @@ import 'package:image_viewer/src/utils/image_viewer_color_utils.dart';
 import 'package:image_viewer/src/view/widgets/alerts/custom_dialog.dart';
 import 'package:image_viewer/src/view/widgets/background/image_viewer_background.dart';
 import 'package:image_viewer/src/view/widgets/carousel/carousel.dart';
-import 'package:image_viewer/src/view/widgets/collected_colors/collected_colors_button.dart';
 import 'package:image_viewer/src/view/widgets/control_bar/control_bar.dart';
 import 'package:image_viewer/src/view/widgets/image_carousel.dart';
 import 'package:image_viewer/src/view/widgets/loading/background_loading_indicator.dart';
